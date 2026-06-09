@@ -1,3 +1,9 @@
+/**
+ * Weight-aware token bucket guarding the Hyperliquid weight budget.
+ * Not concurrency-safe: callers must serialize acquire() (it is designed for a
+ * single sequential fetch pipeline). Concurrently awaited acquire() calls can
+ * both wake from sleep and over-spend the budget.
+ */
 export class RateLimiter {
   private tokens: number;
   private lastRefill: number;
@@ -8,6 +14,9 @@ export class RateLimiter {
     private now: () => number = () => Date.now(),
     private sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
   ) {
+    if (capacity <= 0 || refillPerSec <= 0) {
+      throw new Error('RateLimiter: capacity and refillPerSec must be > 0');
+    }
     this.tokens = capacity;
     this.lastRefill = now();
   }

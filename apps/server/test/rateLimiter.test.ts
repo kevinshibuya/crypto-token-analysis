@@ -20,4 +20,9 @@ describe('RateLimiter', () => {
     expect(sleeps).toHaveLength(1);
     expect(sleeps[0]).toBeCloseTo(1000, -1);
   });
+
+  it('throws on non-positive capacity or refill rate', () => {
+    expect(() => new RateLimiter(0, 20)).toThrow();
+    expect(() => new RateLimiter(100, 0)).toThrow();
+  });
 });
