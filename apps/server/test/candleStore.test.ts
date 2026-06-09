@@ -26,4 +26,12 @@ describe('CandleStore', () => {
     const store = new CandleStore(openDb(':memory:'));
     expect(store.latestTime('ETH', '1h')).toBeNull();
   });
+
+  it('coalesces a stored NULL trade count back to undefined (not null)', () => {
+    const store = new CandleStore(openDb(':memory:'));
+    store.upsert('BTC', '1h', [{ t: 1, o: 1, h: 2, l: 0, c: 1.5, v: 10 }]); // no `n` -> stored as SQL NULL
+    const rows = store.get('BTC', '1h', 0, 10);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].n).toBeUndefined();   // undefined, NOT null (proves the coalescing)
+  });
 });
