@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   createChart, ColorType, LineStyle,
-  type IChartApi, type ISeriesApi, type IPriceLine,
+  type IChartApi, type ISeriesApi, type IPriceLine, type UTCTimestamp,
 } from 'lightweight-charts';
 import type { AnalysisResponse } from '../api/types';
 import { VolumeProfileOverlay } from './VolumeProfileOverlay';
 
-const toSec = (ms: number) => Math.floor(ms / 1000) as never;
+const toSec = (ms: number) => Math.floor(ms / 1000) as UTCTimestamp;
 
 export function Chart({ data, maColors }: { data: AnalysisResponse | null; maColors: string[] }) {
   const priceRef = useRef<HTMLDivElement>(null);
@@ -56,7 +56,7 @@ export function Chart({ data, maColors }: { data: AnalysisResponse | null; maCol
       setTick((t) => t + 1);
     });
     ro.observe(priceRef.current);
-    return () => { ro.disconnect(); pc.remove(); rc.remove(); };
+    return () => { ro.disconnect(); pc.remove(); rc.remove(); maRefs.current = []; pivotLines.current = []; };
   }, []);
 
   useEffect(() => {
