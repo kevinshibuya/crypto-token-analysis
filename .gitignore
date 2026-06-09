@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Builds
+dist/
+build/
+coverage/
+
+# Local data / caches (SQLite candle cache)
+apps/server/data/
+*.sqlite
+*.sqlite-journal
+*.db
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Brainstorming / visual companion artifacts
+.superpowers/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
