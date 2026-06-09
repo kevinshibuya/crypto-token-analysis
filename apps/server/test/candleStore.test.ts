@@ -34,4 +34,11 @@ describe('CandleStore', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].n).toBeUndefined();   // undefined, NOT null (proves the coalescing)
   });
+
+  it('reports the earliest cached time, or null when unknown', () => {
+    const store = new CandleStore(openDb(':memory:'));
+    expect(store.earliestTime('ETH', '1h')).toBeNull();
+    store.upsert('BTC', '1h', [c(2), c(5), c(3)]);
+    expect(store.earliestTime('BTC', '1h')).toBe(2);
+  });
 });

@@ -35,4 +35,23 @@ describe('CandleService', () => {
     expect(client.candleSnapshot).not.toHaveBeenCalled();
     expect(second).toHaveLength(first.length);
   });
+
+  it('backfills when lookback grows beyond the warm cache window', async () => {
+    const step = INTERVAL_MS['1h'];
+    const now = 100 * step;
+    const source: Candle[] = [];
+    for (let t = 0; t <= now; t += step) source.push({ t, o: 1, h: 1, l: 1, c: 1, v: 1 });
+
+    const client = makeClient(source);
+    const store = new CandleStore(openDb(':memory:'));
+    const svc = new CandleService({ client, store, rateLimiter: noopLimiter, now: () => now });
+
+    const small = await svc.getCandles('BTC', '1h', 10);
+    expect(small).toHaveLength(11); // [90*step .. 100*step]
+
+    client.candleSnapshot.mockClear();
+    const big = await svc.getCandles('BTC', '1h', 50);
+    expect(client.candleSnapshot).toHaveBeenCalled(); // must refetch to backfill 50..89
+    expect(big).toHaveLength(51); // [50*step .. 100*step] inclusive
+  });
 });

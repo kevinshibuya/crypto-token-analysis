@@ -37,4 +37,11 @@ export class CandleStore {
       .get(coin, interval) as { maxT: number | null };
     return row.maxT ?? null;
   }
+
+  earliestTime(coin: string, interval: string): number | null {
+    const row = this.db
+      .prepare(`SELECT MIN(t) AS minT FROM candles WHERE coin = ? AND interval = ?`)
+      .get(coin, interval) as { minT: number | null };
+    return row.minT ?? null;
+  }
 }
