@@ -10,7 +10,7 @@ const cfg: AnalysisConfig = {
 };
 
 describe('useAnalysis', () => {
-  beforeEach(() => vi.restoreAllMocks());
+  beforeEach(() => { vi.restoreAllMocks(); });
 
   it('loads analysis and exposes data', async () => {
     const spy = vi.spyOn(client, 'postAnalysis').mockResolvedValue({ coin: 'BTC' } as never);
