@@ -1,13 +1,13 @@
-import type { AnalysisResult } from '@cta/core';
+import type { AnalysisResult, MaType } from '@cta/core';
 
 export type {
-  Candle, IndicatorPoint, MovingAverageResult, VolumeResult, VolumeProfileResult, PivotLevel, MaType,
+  Candle, IndicatorPoint, MovingAverageResult, VolumeBar, VolumeResult, VolumeProfileRow, VolumeProfileResult, PivotType, PivotLevel, MaType,
 } from '@cta/core';
 
 export interface Market { name: string; szDecimals: number; maxLeverage: number; }
 export interface MarketsResponse { markets: Market[]; updatedAt: number; }
 
-export interface MaConfig { type: 'SMA' | 'EMA'; period: number; color: string; }
+export interface MaConfig { type: MaType; period: number; color: string; }
 
 export interface AnalysisConfig {
   coin: string;
