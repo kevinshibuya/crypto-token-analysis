@@ -23,7 +23,7 @@ export function IndicatorDrawer({
       {label}
       <input
         type="number" min={min} max={max} value={value}
-        onChange={(e) => onValue(Number(e.target.value))}
+        onChange={(e) => { const n = Number(e.target.value); if (e.target.value !== '' && !Number.isNaN(n)) onValue(n); }}
         className="w-16 rounded bg-slate-800 px-1 py-0.5 text-right"
       />
     </label>
@@ -54,7 +54,7 @@ export function IndicatorDrawer({
               </select>
               <input
                 type="number" min={1} value={m.period}
-                onChange={(e) => setMa(i, { period: Number(e.target.value) })}
+                onChange={(e) => { const n = Number(e.target.value); if (e.target.value !== '' && !Number.isNaN(n)) setMa(i, { period: n }); }}
                 className="w-14 rounded bg-slate-800 px-1 py-0.5 text-right"
               />
               <button onClick={() => removeMa(i)} className="ml-auto text-xs text-slate-500 hover:text-red-400">✕</button>
