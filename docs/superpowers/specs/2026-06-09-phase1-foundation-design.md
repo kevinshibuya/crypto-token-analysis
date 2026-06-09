@@ -113,7 +113,7 @@ CREATE TABLE markets (name TEXT PRIMARY KEY, data TEXT, updatedAt INTEGER);
 - IP weight budget = **1200/min**. Token bucket: capacity 1200, refill 20 tokens/sec.
 - Per-call weight: `candleSnapshot` = `max(1, ceil(candles / 60))` (estimated from the requested window, capped at `ceil(5000/60) = 84` per page); `meta` = 20.
 - Acquire estimated weight before each call; block until available. Keep in-flight concurrency low (1–2) for predictable ordering.
-- **Backoff:** on HTTP 429 / 5xx / network error → exponential backoff (≈0.5s, 1s, 2s, 4s; ~4 tries) then surface a clear error. If cached data exists, serve it flagged `stale`.
+- **Backoff:** on HTTP 429 / 5xx / network error → exponential backoff (≈0.5s, 1s, 2s, 4s; ~4 tries) then surface a clear error. (Serving stale cache on hard failure is a Phase 2 refinement.)
 
 ## 6. Core Computations (`packages/core`)
 
@@ -156,7 +156,7 @@ Response:
   "volume": { "bars": [ { "t": 1717900000000, "value": 100, "up": true } ], "sma": [ { "t": 1717900000000, "value": 90 } ] },
   "volumeProfile": { "rows": [ { "priceLow": 1, "priceHigh": 1.1, "volume": 500 } ], "poc": 1.05, "valueArea": { "low": 0.9, "high": 1.3 } },
   "pivots": [ { "price": 1.8, "type": "resistance", "strength": 1200, "touches": 3 } ],
-  "meta": { "lastUpdated": 1717900000000, "fromCache": true, "stale": false, "candleCount": 1000 }
+  "meta": { "lastUpdated": 1717900000000, "candleCount": 1000 }
 }
 ```
 Validation: reject unknown intervals/coins and non-positive periods/lookbacks with 400 + a clear message.
