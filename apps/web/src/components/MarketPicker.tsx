@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Market } from '../api/types';
 
 export function MarketPicker({
@@ -6,6 +6,11 @@ export function MarketPicker({
 }: { markets: Market[]; value: string; onChange: (c: string) => void }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
+  const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (blurTimer.current !== null) clearTimeout(blurTimer.current);
+  }, []);
   const filtered = useMemo(
     () => markets.filter((m) => m.name.toLowerCase().includes(query.toLowerCase())).slice(0, 50),
     [markets, query],
@@ -17,7 +22,7 @@ export function MarketPicker({
         placeholder="Search market…"
         value={open ? query : value}
         onFocus={() => { setOpen(true); setQuery(''); }}
-        onBlur={() => setTimeout(() => setOpen(false), 100)}
+        onBlur={() => { blurTimer.current = setTimeout(() => setOpen(false), 100); }}
         onChange={(e) => setQuery(e.target.value)}
       />
       {open && (
