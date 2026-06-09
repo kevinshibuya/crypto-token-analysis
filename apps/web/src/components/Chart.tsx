@@ -89,11 +89,14 @@ export function Chart({ data, maColors }: { data: AnalysisResponse | null; maCol
 
   const priceToY = (price: number): number | null => candle.current?.priceToCoordinate(price) ?? null;
 
+  const axisWidth = priceChart.current?.priceScale('right').width() ?? 0;
+  const overlayWidth = Math.max(0, width - axisWidth);
+
   return (
     <div className="flex min-w-0 flex-1 flex-col">
       <div className="relative" data-tick={tick}>
         <div ref={priceRef} className="w-full" />
-        {data && <VolumeProfileOverlay profile={data.volumeProfile} priceToY={priceToY} width={width} />}
+        {data && <VolumeProfileOverlay profile={data.volumeProfile} priceToY={priceToY} width={overlayWidth} />}
       </div>
       <div ref={rsiRef} className="w-full border-t border-slate-800" />
     </div>

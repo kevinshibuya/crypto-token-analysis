@@ -11,7 +11,7 @@ export function VolumeProfileOverlay({
   if (!profile.rows.length || width === 0) return null;
   const maxVol = Math.max(...profile.rows.map((r) => r.volume)) || 1;
   return (
-    <svg className="pointer-events-none absolute inset-0 h-full w-full">
+    <svg className="pointer-events-none absolute inset-0 z-10 h-full w-full">
       {profile.rows.map((row, i) => {
         const yTop = priceToY(row.priceHigh);
         const yBot = priceToY(row.priceLow);
