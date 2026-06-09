@@ -81,7 +81,7 @@ crypto-token-analysis/
 **Files:**
 - Create: `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`
 
-- [ ] **Step 1: Create `pnpm-workspace.yaml`**
+- [x] **Step 1: Create `pnpm-workspace.yaml`**
 
 ```yaml
 packages:
@@ -89,7 +89,7 @@ packages:
   - "apps/*"
 ```
 
-- [ ] **Step 2: Create root `package.json`**
+- [x] **Step 2: Create root `package.json`**
 
 ```json
 {
@@ -110,7 +110,7 @@ packages:
 }
 ```
 
-- [ ] **Step 3: Create `tsconfig.base.json`**
+- [x] **Step 3: Create `tsconfig.base.json`**
 
 ```json
 {
@@ -127,12 +127,12 @@ packages:
 }
 ```
 
-- [ ] **Step 4: Verify install works**
+- [x] **Step 4: Verify install works**
 
 Run: `pnpm install`
 Expected: completes without error, creates `pnpm-lock.yaml` and `node_modules/`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add package.json pnpm-workspace.yaml tsconfig.base.json pnpm-lock.yaml
@@ -146,7 +146,7 @@ git commit -m "chore: scaffold pnpm monorepo"
 **Files:**
 - Create: `packages/core/package.json`, `packages/core/tsconfig.json`, `packages/core/vitest.config.ts`, `packages/core/src/types.ts`, `packages/core/src/index.ts`
 
-- [ ] **Step 1: Create `packages/core/package.json`**
+- [x] **Step 1: Create `packages/core/package.json`**
 
 ```json
 {
@@ -159,7 +159,7 @@ git commit -m "chore: scaffold pnpm monorepo"
 }
 ```
 
-- [ ] **Step 2: Create `packages/core/tsconfig.json`**
+- [x] **Step 2: Create `packages/core/tsconfig.json`**
 
 ```json
 {
@@ -169,7 +169,7 @@ git commit -m "chore: scaffold pnpm monorepo"
 }
 ```
 
-- [ ] **Step 3: Create `packages/core/vitest.config.ts`**
+- [x] **Step 3: Create `packages/core/vitest.config.ts`**
 
 ```ts
 import { defineConfig } from 'vitest/config';
@@ -179,7 +179,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 4: Create `packages/core/src/types.ts`**
+- [x] **Step 4: Create `packages/core/src/types.ts`**
 
 ```ts
 export interface Candle {
@@ -249,18 +249,18 @@ export interface AnalysisResult {
 }
 ```
 
-- [ ] **Step 5: Create `packages/core/src/index.ts`**
+- [x] **Step 5: Create `packages/core/src/index.ts`**
 
 ```ts
 export * from './types';
 ```
 
-- [ ] **Step 6: Verify the test runner starts**
+- [x] **Step 6: Verify the test runner starts**
 
 Run: `pnpm --filter @cta/core test`
 Expected: Vitest runs, reports "No test files found" (exit 0 with `--passWithNoTests` is not set, so it may exit 1 — that's fine; the next task adds tests). Proceed.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add packages/core
@@ -274,7 +274,7 @@ git commit -m "chore: scaffold @cta/core with shared types"
 **Files:**
 - Create: `packages/core/src/sma.ts`, `packages/core/test/sma.test.ts`
 
-- [ ] **Step 1: Write the failing test** — `packages/core/test/sma.test.ts`
+- [x] **Step 1: Write the failing test** — `packages/core/test/sma.test.ts`
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -303,12 +303,12 @@ describe('sma', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/core test`
 Expected: FAIL — cannot find module `../src/sma`.
 
-- [ ] **Step 3: Write minimal implementation** — `packages/core/src/sma.ts`
+- [x] **Step 3: Write minimal implementation** — `packages/core/src/sma.ts`
 
 ```ts
 import type { Candle, IndicatorPoint } from './types';
@@ -326,12 +326,12 @@ export function sma(candles: Candle[], period: number): IndicatorPoint[] {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/core test`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/sma.ts packages/core/test/sma.test.ts
@@ -345,7 +345,7 @@ git commit -m "feat(core): add SMA"
 **Files:**
 - Create: `packages/core/src/ema.ts`, `packages/core/test/ema.test.ts`
 
-- [ ] **Step 1: Write the failing test** — `packages/core/test/ema.test.ts`
+- [x] **Step 1: Write the failing test** — `packages/core/test/ema.test.ts`
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -371,12 +371,12 @@ describe('ema', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/core test`
 Expected: FAIL — cannot find module `../src/ema`.
 
-- [ ] **Step 3: Write minimal implementation** — `packages/core/src/ema.ts`
+- [x] **Step 3: Write minimal implementation** — `packages/core/src/ema.ts`
 
 ```ts
 import type { Candle, IndicatorPoint } from './types';
@@ -398,12 +398,12 @@ export function ema(candles: Candle[], period: number): IndicatorPoint[] {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/core test`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/ema.ts packages/core/test/ema.test.ts
@@ -417,7 +417,7 @@ git commit -m "feat(core): add EMA"
 **Files:**
 - Create: `packages/core/src/rsi.ts`, `packages/core/test/rsi.test.ts`
 
-- [ ] **Step 1: Write the failing test** — `packages/core/test/rsi.test.ts`
+- [x] **Step 1: Write the failing test** — `packages/core/test/rsi.test.ts`
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -450,12 +450,12 @@ describe('rsi', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/core test`
 Expected: FAIL — cannot find module `../src/rsi`.
 
-- [ ] **Step 3: Write minimal implementation** — `packages/core/src/rsi.ts`
+- [x] **Step 3: Write minimal implementation** — `packages/core/src/rsi.ts`
 
 ```ts
 import type { Candle, IndicatorPoint } from './types';
@@ -490,12 +490,12 @@ export function rsi(candles: Candle[], period: number): IndicatorPoint[] {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/core test`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/rsi.ts packages/core/test/rsi.test.ts
@@ -509,7 +509,7 @@ git commit -m "feat(core): add Wilder RSI"
 **Files:**
 - Create: `packages/core/src/volume.ts`, `packages/core/test/volume.test.ts`
 
-- [ ] **Step 1: Write the failing test** — `packages/core/test/volume.test.ts`
+- [x] **Step 1: Write the failing test** — `packages/core/test/volume.test.ts`
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -538,12 +538,12 @@ describe('volume', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/core test`
 Expected: FAIL — cannot find module `../src/volume`.
 
-- [ ] **Step 3: Write minimal implementation** — `packages/core/src/volume.ts`
+- [x] **Step 3: Write minimal implementation** — `packages/core/src/volume.ts`
 
 ```ts
 import type { Candle, IndicatorPoint, VolumeBar, VolumeResult } from './types';
@@ -562,12 +562,12 @@ export function volume(candles: Candle[], smaPeriod: number): VolumeResult {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/core test`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/volume.ts packages/core/test/volume.test.ts
@@ -581,7 +581,7 @@ git commit -m "feat(core): add volume bars + volume SMA"
 **Files:**
 - Create: `packages/core/src/volumeProfile.ts`, `packages/core/test/volumeProfile.test.ts`
 
-- [ ] **Step 1: Write the failing test** — `packages/core/test/volumeProfile.test.ts`
+- [x] **Step 1: Write the failing test** — `packages/core/test/volumeProfile.test.ts`
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -614,12 +614,12 @@ describe('volumeProfile', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/core test`
 Expected: FAIL — cannot find module `../src/volumeProfile`.
 
-- [ ] **Step 3: Write minimal implementation** — `packages/core/src/volumeProfile.ts`
+- [x] **Step 3: Write minimal implementation** — `packages/core/src/volumeProfile.ts`
 
 ```ts
 import type { Candle, VolumeProfileResult, VolumeProfileRow } from './types';
@@ -692,12 +692,12 @@ export function volumeProfile(candles: Candle[], rows: number): VolumeProfileRes
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/core test`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/volumeProfile.ts packages/core/test/volumeProfile.test.ts
@@ -711,7 +711,7 @@ git commit -m "feat(core): add volume profile (POC + value area)"
 **Files:**
 - Create: `packages/core/src/pivots.ts`, `packages/core/test/pivots.test.ts`
 
-- [ ] **Step 1: Write the failing test** — `packages/core/test/pivots.test.ts`
+- [x] **Step 1: Write the failing test** — `packages/core/test/pivots.test.ts`
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -751,12 +751,12 @@ describe('pivots', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/core test`
 Expected: FAIL — cannot find module `../src/pivots`.
 
-- [ ] **Step 3: Write minimal implementation** — `packages/core/src/pivots.ts`
+- [x] **Step 3: Write minimal implementation** — `packages/core/src/pivots.ts`
 
 ```ts
 import type { Candle, PivotLevel, PivotType } from './types';
@@ -819,12 +819,12 @@ export function pivots(candles: Candle[], opts: PivotOptions): PivotLevel[] {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/core test`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/pivots.ts packages/core/test/pivots.test.ts
@@ -838,7 +838,7 @@ git commit -m "feat(core): add volume-weighted swing pivots"
 **Files:**
 - Modify: `packages/core/src/index.ts`
 
-- [ ] **Step 1: Write the failing test** — `packages/core/test/index.test.ts`
+- [x] **Step 1: Write the failing test** — `packages/core/test/index.test.ts`
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -853,12 +853,12 @@ describe('core index', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/core test`
 Expected: FAIL — exports are missing.
 
-- [ ] **Step 3: Update `packages/core/src/index.ts`**
+- [x] **Step 3: Update `packages/core/src/index.ts`**
 
 ```ts
 export * from './types';
@@ -871,12 +871,12 @@ export { pivots } from './pivots';
 export type { PivotOptions } from './pivots';
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/core test`
 Expected: PASS (all core tests green).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/index.ts packages/core/test/index.test.ts
@@ -890,7 +890,7 @@ git commit -m "feat(core): expose public API surface"
 **Files:**
 - Create: `apps/server/package.json`, `apps/server/tsconfig.json`, `apps/server/vitest.config.ts`, `apps/server/src/config.ts`, `apps/server/src/routes/health.ts`, `apps/server/src/app.ts`, `apps/server/src/server.ts`, `apps/server/test/health.test.ts`
 
-- [ ] **Step 1: Create `apps/server/package.json`**
+- [x] **Step 1: Create `apps/server/package.json`**
 
 ```json
 {
@@ -918,7 +918,7 @@ git commit -m "feat(core): expose public API surface"
 }
 ```
 
-- [ ] **Step 2: Create `apps/server/tsconfig.json`**
+- [x] **Step 2: Create `apps/server/tsconfig.json`**
 
 ```json
 {
@@ -928,7 +928,7 @@ git commit -m "feat(core): expose public API surface"
 }
 ```
 
-- [ ] **Step 3: Create `apps/server/vitest.config.ts`**
+- [x] **Step 3: Create `apps/server/vitest.config.ts`**
 
 ```ts
 import { defineConfig } from 'vitest/config';
@@ -938,7 +938,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 4: Create `apps/server/src/config.ts`**
+- [x] **Step 4: Create `apps/server/src/config.ts`**
 
 ```ts
 export const HYPERLIQUID_BASE_URL = process.env.HL_BASE_URL ?? 'https://api.hyperliquid.xyz';
@@ -963,7 +963,7 @@ export const DEFAULTS = {
 };
 ```
 
-- [ ] **Step 5: Create `apps/server/src/routes/health.ts`**
+- [x] **Step 5: Create `apps/server/src/routes/health.ts`**
 
 ```ts
 import type { FastifyInstance } from 'fastify';
@@ -978,7 +978,7 @@ export function registerHealthRoute(app: FastifyInstance): void {
 }
 ```
 
-- [ ] **Step 6: Create `apps/server/src/app.ts`**
+- [x] **Step 6: Create `apps/server/src/app.ts`**
 
 ```ts
 import Fastify, { FastifyInstance } from 'fastify';
@@ -991,7 +991,7 @@ export function buildApp(): FastifyInstance {
 }
 ```
 
-- [ ] **Step 7: Create `apps/server/src/server.ts`**
+- [x] **Step 7: Create `apps/server/src/server.ts`**
 
 ```ts
 import { buildApp } from './app';
@@ -1007,7 +1007,7 @@ app
   });
 ```
 
-- [ ] **Step 8: Write the failing test** — `apps/server/test/health.test.ts`
+- [x] **Step 8: Write the failing test** — `apps/server/test/health.test.ts`
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -1023,12 +1023,12 @@ describe('GET /api/health', () => {
 });
 ```
 
-- [ ] **Step 9: Install deps and run the test**
+- [x] **Step 9: Install deps and run the test**
 
 Run: `pnpm install && pnpm --filter @cta/server test`
 Expected: PASS (1 test). (`pnpm install` builds the native `better-sqlite3` module.)
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add apps/server package.json pnpm-lock.yaml
@@ -1042,7 +1042,7 @@ git commit -m "feat(server): scaffold Fastify app with health route"
 **Files:**
 - Create: `apps/server/src/hyperliquid/rateLimiter.ts`, `apps/server/test/rateLimiter.test.ts`
 
-- [ ] **Step 1: Write the failing test** — `apps/server/test/rateLimiter.test.ts`
+- [x] **Step 1: Write the failing test** — `apps/server/test/rateLimiter.test.ts`
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -1070,12 +1070,12 @@ describe('RateLimiter', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/server test`
 Expected: FAIL — cannot find module `../src/hyperliquid/rateLimiter`.
 
-- [ ] **Step 3: Write minimal implementation** — `apps/server/src/hyperliquid/rateLimiter.ts`
+- [x] **Step 3: Write minimal implementation** — `apps/server/src/hyperliquid/rateLimiter.ts`
 
 ```ts
 export class RateLimiter {
@@ -1119,12 +1119,12 @@ export class RateLimiter {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/server test`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/server/src/hyperliquid/rateLimiter.ts apps/server/test/rateLimiter.test.ts
@@ -1138,7 +1138,7 @@ git commit -m "feat(server): add token-bucket rate limiter"
 **Files:**
 - Create: `apps/server/src/hyperliquid/client.ts`, `apps/server/test/client.test.ts`
 
-- [ ] **Step 1: Write the failing test** — `apps/server/test/client.test.ts`
+- [x] **Step 1: Write the failing test** — `apps/server/test/client.test.ts`
 
 ```ts
 import { describe, it, expect, vi } from 'vitest';
@@ -1190,12 +1190,12 @@ describe('HyperliquidClient', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/server test`
 Expected: FAIL — cannot find module `../src/hyperliquid/client`.
 
-- [ ] **Step 3: Write minimal implementation** — `apps/server/src/hyperliquid/client.ts`
+- [x] **Step 3: Write minimal implementation** — `apps/server/src/hyperliquid/client.ts`
 
 ```ts
 import type { Candle } from '@cta/core';
@@ -1274,12 +1274,12 @@ export class HyperliquidClient {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/server test`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/server/src/hyperliquid/client.ts apps/server/test/client.test.ts
@@ -1293,7 +1293,7 @@ git commit -m "feat(server): add Hyperliquid info client (meta + candleSnapshot)
 **Files:**
 - Create: `apps/server/src/hyperliquid/pagination.ts`, `apps/server/test/pagination.test.ts`
 
-- [ ] **Step 1: Write the failing test** — `apps/server/test/pagination.test.ts`
+- [x] **Step 1: Write the failing test** — `apps/server/test/pagination.test.ts`
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -1328,12 +1328,12 @@ describe('fetchCandles pagination', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/server test`
 Expected: FAIL — cannot find module `../src/hyperliquid/pagination`.
 
-- [ ] **Step 3: Write minimal implementation** — `apps/server/src/hyperliquid/pagination.ts`
+- [x] **Step 3: Write minimal implementation** — `apps/server/src/hyperliquid/pagination.ts`
 
 ```ts
 import type { Candle } from '@cta/core';
@@ -1373,12 +1373,12 @@ export async function fetchCandles(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/server test`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/server/src/hyperliquid/pagination.ts apps/server/test/pagination.test.ts
@@ -1392,7 +1392,7 @@ git commit -m "feat(server): paginate candleSnapshot past the 5000/req cap"
 **Files:**
 - Create: `apps/server/src/cache/db.ts`, `apps/server/src/cache/candleStore.ts`, `apps/server/test/candleStore.test.ts`
 
-- [ ] **Step 1: Write the failing test** — `apps/server/test/candleStore.test.ts`
+- [x] **Step 1: Write the failing test** — `apps/server/test/candleStore.test.ts`
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -1426,12 +1426,12 @@ describe('CandleStore', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/server test`
 Expected: FAIL — cannot find module `../src/cache/db`.
 
-- [ ] **Step 3: Write `apps/server/src/cache/db.ts`**
+- [x] **Step 3: Write `apps/server/src/cache/db.ts`**
 
 ```ts
 import Database from 'better-sqlite3';
@@ -1458,7 +1458,7 @@ export function openDb(path: string): DB {
 }
 ```
 
-- [ ] **Step 4: Write `apps/server/src/cache/candleStore.ts`**
+- [x] **Step 4: Write `apps/server/src/cache/candleStore.ts`**
 
 ```ts
 import type { Candle } from '@cta/core';
@@ -1498,12 +1498,12 @@ export class CandleStore {
 }
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/server test`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apps/server/src/cache/db.ts apps/server/src/cache/candleStore.ts apps/server/test/candleStore.test.ts
@@ -1517,7 +1517,7 @@ git commit -m "feat(server): add SQLite candle cache"
 **Files:**
 - Create: `apps/server/src/services/candleService.ts`, `apps/server/test/candleService.test.ts`
 
-- [ ] **Step 1: Write the failing test** — `apps/server/test/candleService.test.ts`
+- [x] **Step 1: Write the failing test** — `apps/server/test/candleService.test.ts`
 
 ```ts
 import { describe, it, expect, vi } from 'vitest';
@@ -1560,12 +1560,12 @@ describe('CandleService', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/server test`
 Expected: FAIL — cannot find module `../src/services/candleService`.
 
-- [ ] **Step 3: Write minimal implementation** — `apps/server/src/services/candleService.ts`
+- [x] **Step 3: Write minimal implementation** — `apps/server/src/services/candleService.ts`
 
 ```ts
 import type { Candle } from '@cta/core';
@@ -1619,12 +1619,12 @@ export class CandleService {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/server test`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/server/src/services/candleService.ts apps/server/test/candleService.test.ts
@@ -1639,7 +1639,7 @@ git commit -m "feat(server): add incremental candle fetch service"
 - Create: `apps/server/src/cache/marketStore.ts`, `apps/server/src/services/marketsService.ts`, `apps/server/src/routes/markets.ts`, `apps/server/test/markets.test.ts`
 - Modify: `apps/server/src/app.ts`
 
-- [ ] **Step 1: Write the failing test** — `apps/server/test/markets.test.ts`
+- [x] **Step 1: Write the failing test** — `apps/server/test/markets.test.ts`
 
 ```ts
 import { describe, it, expect, vi } from 'vitest';
@@ -1678,12 +1678,12 @@ describe('GET /api/markets', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/server test`
 Expected: FAIL — modules missing / `buildApp` doesn't accept deps yet.
 
-- [ ] **Step 3: Write `apps/server/src/cache/marketStore.ts`**
+- [x] **Step 3: Write `apps/server/src/cache/marketStore.ts`**
 
 ```ts
 import type { DB } from './db';
@@ -1716,7 +1716,7 @@ export class MarketStore {
 }
 ```
 
-- [ ] **Step 4: Write `apps/server/src/services/marketsService.ts`**
+- [x] **Step 4: Write `apps/server/src/services/marketsService.ts`**
 
 ```ts
 import type { HyperliquidClient } from '../hyperliquid/client';
@@ -1755,7 +1755,7 @@ export class MarketsService {
 }
 ```
 
-- [ ] **Step 5: Write `apps/server/src/routes/markets.ts`**
+- [x] **Step 5: Write `apps/server/src/routes/markets.ts`**
 
 ```ts
 import type { FastifyInstance } from 'fastify';
@@ -1766,7 +1766,7 @@ export function registerMarketsRoute(app: FastifyInstance, svc: MarketsService):
 }
 ```
 
-- [ ] **Step 6: Update `apps/server/src/app.ts`**
+- [x] **Step 6: Update `apps/server/src/app.ts`**
 
 ```ts
 import Fastify, { FastifyInstance } from 'fastify';
@@ -1786,12 +1786,12 @@ export function buildApp(deps: Partial<AppDeps> = {}): FastifyInstance {
 }
 ```
 
-- [ ] **Step 7: Run test to verify it passes**
+- [x] **Step 7: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/server test`
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add apps/server/src/cache/marketStore.ts apps/server/src/services/marketsService.ts apps/server/src/routes/markets.ts apps/server/src/app.ts apps/server/test/markets.test.ts
@@ -1806,7 +1806,7 @@ git commit -m "feat(server): add markets cache, service and route"
 - Create: `apps/server/src/services/analysisService.ts`, `apps/server/src/routes/analysis.ts`, `apps/server/test/analysis.test.ts`
 - Modify: `apps/server/src/app.ts`, `apps/server/src/server.ts`
 
-- [ ] **Step 1: Write the failing test** — `apps/server/test/analysis.test.ts`
+- [x] **Step 1: Write the failing test** — `apps/server/test/analysis.test.ts`
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -1837,12 +1837,12 @@ describe('POST /api/analysis', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/server test`
 Expected: FAIL — analysis route/service missing.
 
-- [ ] **Step 3: Write `apps/server/src/services/analysisService.ts`**
+- [x] **Step 3: Write `apps/server/src/services/analysisService.ts`**
 
 ```ts
 import { sma, ema, rsi, volume, volumeProfile, pivots } from '@cta/core';
@@ -1896,7 +1896,7 @@ export class AnalysisService {
 }
 ```
 
-- [ ] **Step 4: Write `apps/server/src/routes/analysis.ts`**
+- [x] **Step 4: Write `apps/server/src/routes/analysis.ts`**
 
 ```ts
 import type { FastifyInstance } from 'fastify';
@@ -1941,7 +1941,7 @@ export function registerAnalysisRoute(app: FastifyInstance, svc: AnalysisService
 }
 ```
 
-- [ ] **Step 5: Update `apps/server/src/app.ts`**
+- [x] **Step 5: Update `apps/server/src/app.ts`**
 
 ```ts
 import Fastify, { FastifyInstance } from 'fastify';
@@ -1965,7 +1965,7 @@ export function buildApp(deps: Partial<AppDeps> = {}): FastifyInstance {
 }
 ```
 
-- [ ] **Step 6: Update `apps/server/src/server.ts` to wire real dependencies**
+- [x] **Step 6: Update `apps/server/src/server.ts` to wire real dependencies**
 
 ```ts
 import { buildApp } from './app';
@@ -1997,17 +1997,17 @@ app
   });
 ```
 
-- [ ] **Step 7: Run test to verify it passes**
+- [x] **Step 7: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/server test`
 Expected: PASS (all server tests green).
 
-- [ ] **Step 8: Manual smoke test (optional but recommended)**
+- [x] **Step 8: Manual smoke test (optional but recommended)**
 
 Run: `pnpm --filter @cta/server start` then in another shell `curl -s localhost:3001/api/markets | head -c 200`
 Expected: a JSON object with a `markets` array of real perps (hits the live Hyperliquid API once, then caches).
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add apps/server/src/services/analysisService.ts apps/server/src/routes/analysis.ts apps/server/src/app.ts apps/server/src/server.ts apps/server/test/analysis.test.ts
@@ -2021,7 +2021,7 @@ git commit -m "feat(server): add analysis service, route and full wiring"
 **Files:**
 - Create: `apps/web/package.json`, `apps/web/tsconfig.json`, `apps/web/vite.config.ts`, `apps/web/index.html`, `apps/web/postcss.config.js`, `apps/web/tailwind.config.js`, `apps/web/test/setup.ts`, `apps/web/src/main.tsx`, `apps/web/src/App.tsx`, `apps/web/src/index.css`, `apps/web/src/intervals.ts`
 
-- [ ] **Step 1: Create `apps/web/package.json`**
+- [x] **Step 1: Create `apps/web/package.json`**
 
 ```json
 {
@@ -2058,7 +2058,7 @@ git commit -m "feat(server): add analysis service, route and full wiring"
 }
 ```
 
-- [ ] **Step 2: Create `apps/web/vite.config.ts`** (dev proxy to the API avoids CORS)
+- [x] **Step 2: Create `apps/web/vite.config.ts`** (dev proxy to the API avoids CORS)
 
 ```ts
 import { defineConfig } from 'vitest/config';
@@ -2076,7 +2076,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 3: Create `apps/web/tsconfig.json`**
+- [x] **Step 3: Create `apps/web/tsconfig.json`**
 
 ```json
 {
@@ -2091,7 +2091,7 @@ export default defineConfig({
 }
 ```
 
-- [ ] **Step 4: Create config + entry files**
+- [x] **Step 4: Create config + entry files**
 
 `apps/web/postcss.config.js`:
 ```js
@@ -2167,12 +2167,12 @@ export function App() {
 import '@testing-library/jest-dom';
 ```
 
-- [ ] **Step 5: Install and verify the build**
+- [x] **Step 5: Install and verify the build**
 
 Run: `pnpm install && pnpm --filter @cta/web build`
 Expected: Vite build succeeds, emits `apps/web/dist/`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apps/web package.json pnpm-lock.yaml
@@ -2186,7 +2186,7 @@ git commit -m "feat(web): scaffold Vite + React + Tailwind app"
 **Files:**
 - Create: `apps/web/src/api/types.ts`, `apps/web/src/api/client.ts`, `apps/web/src/state/useAnalysis.ts`, `apps/web/test/useAnalysis.test.ts`
 
-- [ ] **Step 1: Create `apps/web/src/api/types.ts`**
+- [x] **Step 1: Create `apps/web/src/api/types.ts`**
 
 ```ts
 import type { AnalysisResult } from '@cta/core';
@@ -2214,7 +2214,7 @@ export interface AnalysisConfig {
 export type AnalysisResponse = AnalysisResult & { meta: { lastUpdated: number; candleCount: number } };
 ```
 
-- [ ] **Step 2: Create `apps/web/src/api/client.ts`**
+- [x] **Step 2: Create `apps/web/src/api/client.ts`**
 
 ```ts
 import type { AnalysisConfig, AnalysisResponse, MarketsResponse } from './types';
@@ -2244,7 +2244,7 @@ export async function postAnalysis(cfg: AnalysisConfig): Promise<AnalysisRespons
 }
 ```
 
-- [ ] **Step 3: Write the failing test** — `apps/web/test/useAnalysis.test.ts`
+- [x] **Step 3: Write the failing test** — `apps/web/test/useAnalysis.test.ts`
 
 ```ts
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -2276,12 +2276,12 @@ describe('useAnalysis', () => {
 });
 ```
 
-- [ ] **Step 4: Run test to verify it fails**
+- [x] **Step 4: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/web test`
 Expected: FAIL — cannot find module `../src/state/useAnalysis`.
 
-- [ ] **Step 5: Create `apps/web/src/state/useAnalysis.ts`**
+- [x] **Step 5: Create `apps/web/src/state/useAnalysis.ts`**
 
 ```ts
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -2331,12 +2331,12 @@ export function useAnalysis(config: AnalysisConfig, debounceMs = 300): UseAnalys
 }
 ```
 
-- [ ] **Step 6: Run test to verify it passes**
+- [x] **Step 6: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/web test`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add apps/web/src/api apps/web/src/state apps/web/test/useAnalysis.test.ts
@@ -2350,7 +2350,7 @@ git commit -m "feat(web): add API client, types and analysis hook"
 **Files:**
 - Create: `apps/web/src/components/TimeframePills.tsx`, `apps/web/src/components/MarketPicker.tsx`, `apps/web/src/components/Toolbar.tsx`, `apps/web/test/toolbar.test.tsx`
 
-- [ ] **Step 1: Write the failing test** — `apps/web/test/toolbar.test.tsx`
+- [x] **Step 1: Write the failing test** — `apps/web/test/toolbar.test.tsx`
 
 ```tsx
 import { describe, it, expect, vi } from 'vitest';
@@ -2385,12 +2385,12 @@ describe('MarketPicker', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/web test`
 Expected: FAIL — components missing.
 
-- [ ] **Step 3: Create `apps/web/src/components/TimeframePills.tsx`**
+- [x] **Step 3: Create `apps/web/src/components/TimeframePills.tsx`**
 
 ```tsx
 import { SUPPORTED_INTERVALS } from '../intervals';
@@ -2414,7 +2414,7 @@ export function TimeframePills({ value, onChange }: { value: string; onChange: (
 }
 ```
 
-- [ ] **Step 4: Create `apps/web/src/components/MarketPicker.tsx`**
+- [x] **Step 4: Create `apps/web/src/components/MarketPicker.tsx`**
 
 ```tsx
 import { useMemo, useState } from 'react';
@@ -2458,7 +2458,7 @@ export function MarketPicker({
 }
 ```
 
-- [ ] **Step 5: Create `apps/web/src/components/Toolbar.tsx`**
+- [x] **Step 5: Create `apps/web/src/components/Toolbar.tsx`**
 
 ```tsx
 import type { Market } from '../api/types';
@@ -2490,12 +2490,12 @@ export function Toolbar(props: {
 }
 ```
 
-- [ ] **Step 6: Run test to verify it passes**
+- [x] **Step 6: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/web test`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add apps/web/src/components/TimeframePills.tsx apps/web/src/components/MarketPicker.tsx apps/web/src/components/Toolbar.tsx apps/web/test/toolbar.test.tsx
@@ -2509,7 +2509,7 @@ git commit -m "feat(web): add toolbar with market picker and timeframe pills"
 **Files:**
 - Create: `apps/web/src/components/IndicatorDrawer.tsx`, `apps/web/test/indicatorDrawer.test.tsx`
 
-- [ ] **Step 1: Write the failing test** — `apps/web/test/indicatorDrawer.test.tsx`
+- [x] **Step 1: Write the failing test** — `apps/web/test/indicatorDrawer.test.tsx`
 
 ```tsx
 import { describe, it, expect, vi } from 'vitest';
@@ -2541,12 +2541,12 @@ describe('IndicatorDrawer', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/web test`
 Expected: FAIL — `IndicatorDrawer` missing.
 
-- [ ] **Step 3: Create `apps/web/src/components/IndicatorDrawer.tsx`**
+- [x] **Step 3: Create `apps/web/src/components/IndicatorDrawer.tsx`**
 
 ```tsx
 import type { AnalysisConfig, MaConfig } from '../api/types';
@@ -2629,12 +2629,12 @@ export function IndicatorDrawer({
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/web test`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/components/IndicatorDrawer.tsx apps/web/test/indicatorDrawer.test.tsx
@@ -2650,7 +2650,7 @@ git commit -m "feat(web): add indicator config drawer"
 **Files:**
 - Create: `apps/web/src/components/VolumeProfileOverlay.tsx`, `apps/web/src/components/Chart.tsx`
 
-- [ ] **Step 1: Create `apps/web/src/components/VolumeProfileOverlay.tsx`**
+- [x] **Step 1: Create `apps/web/src/components/VolumeProfileOverlay.tsx`**
 
 ```tsx
 import type { VolumeProfileResult } from '../api/types';
@@ -2691,7 +2691,7 @@ export function VolumeProfileOverlay({
 }
 ```
 
-- [ ] **Step 2: Create `apps/web/src/components/Chart.tsx`**
+- [x] **Step 2: Create `apps/web/src/components/Chart.tsx`**
 
 ```tsx
 import { useEffect, useRef, useState } from 'react';
@@ -2797,14 +2797,14 @@ export function Chart({ data, maColors }: { data: AnalysisResponse | null; maCol
 }
 ```
 
-- [ ] **Step 3: Manual verification (deferred to Task 23's end-to-end check)**
+- [x] **Step 3: Manual verification (deferred to Task 23's end-to-end check)**
 
 The Chart can't render meaningfully until it's wired into `App` with live data. It is verified as part of Task 23, Step 4. For now just confirm it type-checks:
 
 Run: `pnpm --filter @cta/web build`
 Expected: build succeeds (App still the shell; Chart compiles).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add apps/web/src/components/Chart.tsx apps/web/src/components/VolumeProfileOverlay.tsx
@@ -2818,7 +2818,7 @@ git commit -m "feat(web): add candlestick chart with MA/volume/RSI/pivots + volu
 **Files:**
 - Modify: `apps/web/src/App.tsx`
 
-- [ ] **Step 1: Replace `apps/web/src/App.tsx`**
+- [x] **Step 1: Replace `apps/web/src/App.tsx`**
 
 ```tsx
 import { useEffect, useMemo, useState } from 'react';
@@ -2881,17 +2881,17 @@ export function App() {
 }
 ```
 
-- [ ] **Step 2: Run all tests**
+- [x] **Step 2: Run all tests**
 
 Run: `pnpm -r test`
 Expected: PASS across `@cta/core`, `@cta/server`, `@cta/web`.
 
-- [ ] **Step 3: Build the web app**
+- [x] **Step 3: Build the web app**
 
 Run: `pnpm --filter @cta/web build`
 Expected: build succeeds.
 
-- [ ] **Step 4: End-to-end manual verification**
+- [x] **Step 4: End-to-end manual verification**
 
 In one terminal: `pnpm --filter @cta/server start`
 In another: `pnpm --filter @cta/web dev`
@@ -2905,7 +2905,7 @@ Open `http://localhost:5173`. Confirm:
 
 (Use the `run` skill / browser-driven verification if available.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/App.tsx
@@ -2919,7 +2919,7 @@ git commit -m "feat(web): wire toolbar, chart and drawer into Layout A"
 **Files:**
 - Create: `README.md`, `.env.example`
 
-- [ ] **Step 1: Create `.env.example`**
+- [x] **Step 1: Create `.env.example`**
 
 ```bash
 # Hyperliquid API base (override for testnet: https://api.hyperliquid-testnet.xyz)
@@ -2930,7 +2930,7 @@ PORT=3001
 CACHE_DB_PATH=data/cache.sqlite
 ```
 
-- [ ] **Step 2: Create `README.md`**
+- [x] **Step 2: Create `README.md`**
 
 ````markdown
 # Hyperliquid Token Analysis
@@ -2962,7 +2962,7 @@ pnpm -r test
 See `docs/superpowers/specs/2026-06-09-phase1-foundation-design.md`.
 ````
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add README.md .env.example
