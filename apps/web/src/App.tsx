@@ -26,7 +26,7 @@ export function App() {
   const { data, loading, error, reload } = useAnalysis(config);
 
   useEffect(() => {
-    getMarkets().then((r) => setMarkets(r.markets)).catch(() => undefined);
+    getMarkets().then((r) => setMarkets(r.markets)).catch((e) => console.error('markets fetch failed', e));
   }, []);
 
   const status = useMemo(() => {
@@ -36,7 +36,7 @@ export function App() {
     return '';
   }, [error, loading, data]);
 
-  const maColors = config.movingAverages.map((m) => m.color);
+  const maColors = useMemo(() => config.movingAverages.map((m) => m.color), [config.movingAverages]);
 
   return (
     <div className="flex h-full flex-col">
@@ -44,8 +44,8 @@ export function App() {
         markets={markets}
         coin={config.coin}
         interval={config.interval}
-        onCoin={(coin) => setConfig({ ...config, coin })}
-        onInterval={(interval) => setConfig({ ...config, interval })}
+        onCoin={(coin) => setConfig((prev) => ({ ...prev, coin }))}
+        onInterval={(interval) => setConfig((prev) => ({ ...prev, interval }))}
         onRefresh={reload}
         status={status}
       />
