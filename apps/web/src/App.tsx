@@ -6,6 +6,7 @@ import { Toolbar } from './components/Toolbar';
 import type { View } from './components/Toolbar';
 import { IndicatorDrawer } from './components/IndicatorDrawer';
 import { Chart } from './components/Chart';
+import { buildMarkers, DEFAULT_FAMILIES, type FamilyToggles } from './signals';
 
 const DEFAULT_CONFIG: AnalysisConfig = {
   coin: 'BTC',
@@ -25,6 +26,7 @@ export function App() {
   const [markets, setMarkets] = useState<Market[]>([]);
   const [config, setConfig] = useState<AnalysisConfig>(DEFAULT_CONFIG);
   const [view, setView] = useState<View>('chart');
+  const [families, setFamilies] = useState<FamilyToggles>(DEFAULT_FAMILIES);
   const { data, loading, error, reload } = useAnalysis(config);
 
   useEffect(() => {
@@ -39,6 +41,7 @@ export function App() {
   }, [error, loading, data]);
 
   const maColors = useMemo(() => config.movingAverages.map((m) => m.color), [config.movingAverages]);
+  const markers = useMemo(() => buildMarkers(data?.signals ?? [], families), [data, families]);
 
   return (
     <div className="flex h-full flex-col">
@@ -54,8 +57,8 @@ export function App() {
         status={status}
       />
       <div className={view === 'chart' ? 'flex min-h-0 flex-1' : 'hidden'}>
-        <Chart data={data} maColors={maColors} />
-        <IndicatorDrawer config={config} onChange={setConfig} />
+        <Chart data={data} maColors={maColors} markers={markers} />
+        <IndicatorDrawer config={config} onChange={setConfig} families={families} onFamilies={setFamilies} />
       </div>
       <div className={view === 'backtest' ? 'flex min-h-0 flex-1' : 'hidden'}>
         <div className="p-4 text-sm text-slate-500">Backtest panel lands in Task 24.</div>

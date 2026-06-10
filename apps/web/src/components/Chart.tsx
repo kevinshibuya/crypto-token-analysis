@@ -2,13 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import {
   createChart, ColorType, LineStyle,
   type IChartApi, type ISeriesApi, type IPriceLine, type UTCTimestamp,
+  type SeriesMarker, type Time,
 } from 'lightweight-charts';
 import type { AnalysisResponse } from '../api/types';
 import { VolumeProfileOverlay } from './VolumeProfileOverlay';
+import type { ChartMarker } from '../signals';
 
 const toSec = (ms: number) => Math.floor(ms / 1000) as UTCTimestamp;
 
-export function Chart({ data, maColors }: { data: AnalysisResponse | null; maColors: string[] }) {
+export function Chart({ data, maColors, markers }: { data: AnalysisResponse | null; maColors: string[]; markers: ChartMarker[] }) {
   const priceRef = useRef<HTMLDivElement>(null);
   const rsiRef = useRef<HTMLDivElement>(null);
   const priceChart = useRef<IChartApi | null>(null);
@@ -86,6 +88,14 @@ export function Chart({ data, maColors }: { data: AnalysisResponse | null; maCol
     pc.timeScale().fitContent();
     setTick((t) => t + 1);
   }, [data, maColors]);
+
+  useEffect(() => {
+    if (!candle.current) return;
+    candle.current.setMarkers(markers as unknown as SeriesMarker<Time>[]);
+    if (import.meta.env.DEV) {
+      (window as unknown as { __markerCount?: number }).__markerCount = markers.length;
+    }
+  }, [markers, data]);
 
   const priceToY = (price: number): number | null => candle.current?.priceToCoordinate(price) ?? null;
 

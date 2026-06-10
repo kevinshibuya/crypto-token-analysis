@@ -1,10 +1,16 @@
-import type { AnalysisConfig, MaConfig } from '../api/types';
+import type { AnalysisConfig, MaConfig, SignalFamily } from '../api/types';
+import { FAMILY_LABELS, type FamilyToggles } from '../signals';
 
 const MA_COLORS = ['#22d3ee', '#f59e0b', '#a78bfa', '#34d399', '#f472b6'];
 
 export function IndicatorDrawer({
-  config, onChange,
-}: { config: AnalysisConfig; onChange: (c: AnalysisConfig) => void }) {
+  config, onChange, families, onFamilies,
+}: {
+  config: AnalysisConfig;
+  onChange: (c: AnalysisConfig) => void;
+  families: FamilyToggles;
+  onFamilies: (f: FamilyToggles) => void;
+}) {
   const update = (patch: Partial<AnalysisConfig>) => onChange({ ...config, ...patch });
   const setMa = (idx: number, patch: Partial<MaConfig>) =>
     update({ movingAverages: config.movingAverages.map((m, i) => (i === idx ? { ...m, ...patch } : m)) });
@@ -31,6 +37,21 @@ export function IndicatorDrawer({
 
   return (
     <aside className="w-64 shrink-0 space-y-4 overflow-auto border-l border-slate-800 bg-slate-900 p-3 text-sm">
+      <section>
+        <h3 className="mb-1 text-xs uppercase tracking-wide text-slate-500">Signals</h3>
+        <div className="space-y-1">
+          {(Object.keys(FAMILY_LABELS) as SignalFamily[]).map((fam) => (
+            <label key={fam} className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={families[fam]}
+                onChange={() => onFamilies({ ...families, [fam]: !families[fam] })}
+              />
+              {FAMILY_LABELS[fam]}
+            </label>
+          ))}
+        </div>
+      </section>
       <section>
         <h3 className="mb-1 text-xs uppercase tracking-wide text-slate-500">RSI</h3>
         {numberField('Period', config.rsiPeriod, (n) => update({ rsiPeriod: n }))}
