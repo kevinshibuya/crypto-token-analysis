@@ -10,6 +10,7 @@ const bodySchema = {
     coin: { type: 'string', minLength: 1 },
     interval: { type: 'string', enum: SUPPORTED_INTERVALS as unknown as string[] },
     lookback: { type: 'integer', minimum: 1, maximum: 20000, default: DEFAULT_LOOKBACK },
+    force: { type: 'boolean', default: false },
     rsi: {
       type: 'object', default: {},
       properties: { period: { type: 'integer', minimum: 1, default: DEFAULTS.rsiPeriod } },
