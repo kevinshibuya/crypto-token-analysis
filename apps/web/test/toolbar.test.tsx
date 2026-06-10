@@ -50,4 +50,10 @@ describe('Toolbar tabs', () => {
     render(<Toolbar {...base} view="backtest" onView={vi.fn()} />);
     expect(screen.getByRole('button', { name: 'Backtest' }).className).toContain('bg-blue-600');
   });
+  it('offers a Signals tab', () => {
+    const onView = vi.fn();
+    render(<Toolbar {...base} view="chart" onView={onView} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Signals' }));
+    expect(onView).toHaveBeenCalledWith('signals');
+  });
 });

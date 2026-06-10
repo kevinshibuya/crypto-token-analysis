@@ -3,7 +3,7 @@ import type { Interval } from '../intervals';
 import { MarketPicker } from './MarketPicker';
 import { TimeframePills } from './TimeframePills';
 
-export type View = 'chart' | 'backtest';
+export type View = 'chart' | 'backtest' | 'signals';
 
 export function Toolbar(props: {
   markets: Market[];
@@ -29,7 +29,7 @@ export function Toolbar(props: {
   return (
     <div className="flex items-center gap-3 border-b border-slate-800 bg-slate-900 px-3 py-2">
       <MarketPicker markets={props.markets} value={props.coin} onChange={props.onCoin} />
-      <div className="flex gap-1">{tab('chart', 'Chart')}{tab('backtest', 'Backtest')}</div>
+      <div className="flex gap-1">{tab('chart', 'Chart')}{tab('backtest', 'Backtest')}{tab('signals', 'Signals')}</div>
       <TimeframePills value={props.interval} onChange={props.onInterval} />
       <button
         onClick={props.onRefresh}

@@ -8,6 +8,7 @@ import { IndicatorDrawer } from './components/IndicatorDrawer';
 import { Chart } from './components/Chart';
 import { buildMarkers, DEFAULT_FAMILIES, type FamilyToggles } from './signals';
 import { BacktestPanel } from './components/BacktestPanel';
+import { SignalsPanel } from './components/SignalsPanel';
 
 const DEFAULT_CONFIG: AnalysisConfig = {
   coin: 'BTC',
@@ -63,6 +64,16 @@ export function App() {
       </div>
       <div className={view === 'backtest' ? 'flex min-h-0 flex-1' : 'hidden'}>
         <BacktestPanel coin={config.coin} interval={config.interval} />
+      </div>
+      <div className={view === 'signals' ? 'flex min-h-0 flex-1' : 'hidden'}>
+        <SignalsPanel
+          coin={config.coin}
+          interval={config.interval}
+          markets={markets}
+          active={view === 'signals'}
+          onCoin={(coin) => setConfig((prev) => ({ ...prev, coin }))}
+          onViewPlan={() => {}}
+        />
       </div>
     </div>
   );
