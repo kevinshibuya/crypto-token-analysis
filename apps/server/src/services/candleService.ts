@@ -18,26 +18,31 @@ export class CandleService {
     this.now = deps.now ?? (() => Date.now());
   }
 
-  async getCandles(coin: string, interval: string, lookback: number): Promise<Candle[]> {
-    const step = INTERVAL_MS[interval as Interval];
+  async getCandles(
+    coin: string,
+    interval: string,
+    lookback: number,
+    opts: { force?: boolean } = {},
+  ): Promise<Candle[]> {
+    const step = INTERVAL_MS[interval as keyof typeof INTERVAL_MS];
     if (!step) throw new Error(`unknown interval ${interval}`);
+    const force = opts.force ?? false;
     const end = this.now();
     const wantStart = end - lookback * step;
     const latest = this.deps.store.latestTime(coin, interval);
     const earliest = this.deps.store.earliestTime(coin, interval);
-    const fetchStart = latest === null ? wantStart : Math.min(wantStart, latest + step);
 
-    // Refetch when the cache is missing the recent head — cold, or the latest closed
-    // candle is older than one step. NOTE: the `< end - step` boundary is a deliberate
-    // one-step staleness window (Phase 1 is on-demand refresh, no WebSocket), so the
-    // most-recently-closed candle may lag by up to one poll.
-    const missingHead = latest === null || latest < end - step;
-    // ...or when the cache doesn't reach back to the requested window (e.g. the caller
-    // increased `lookback` on a warm cache). Without this, store.get would silently
-    // return a truncated series.
-    const missingTail = earliest === null || earliest > wantStart;
-    if (missingHead || missingTail) {
-      await this.fetchAndStore(coin, interval as Interval, fetchStart, end);
+    if (latest === null || earliest === null) {
+      await this.fetchAndStore(coin, interval as Interval, wantStart, end);
+    } else {
+      // Tail: fetch only the missing older range (the cached middle is never refetched).
+      if (earliest > wantStart) await this.fetchAndStore(coin, interval as Interval, wantStart, earliest - step);
+      // Head: one-step staleness window as before; `force` refetches the latest
+      // stored candle too, since it may have been cached while still open.
+      const missingHead = latest < end - step;
+      if (missingHead || force) {
+        await this.fetchAndStore(coin, interval as Interval, force ? latest : latest + step, end);
+      }
     }
     return this.deps.store.get(coin, interval, wantStart, end);
   }
