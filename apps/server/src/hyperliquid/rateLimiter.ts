@@ -1,12 +1,12 @@
 /**
  * Weight-aware token bucket guarding the Hyperliquid weight budget.
- * Not concurrency-safe: callers must serialize acquire() (it is designed for a
- * single sequential fetch pipeline). Concurrently awaited acquire() calls can
- * both wake from sleep and over-spend the budget.
+ * Concurrency-safe: concurrent acquire() calls are serialized via a
+ * promise-chain mutex so the budget is never over-spent.
  */
 export class RateLimiter {
   private tokens: number;
   private lastRefill: number;
+  private queue: Promise<void> = Promise.resolve();
 
   constructor(
     private capacity: number,
@@ -28,7 +28,13 @@ export class RateLimiter {
     this.lastRefill = t;
   }
 
-  async acquire(weight: number): Promise<void> {
+  acquire(weight: number): Promise<void> {
+    const run = this.queue.then(() => this.acquireSequential(weight));
+    this.queue = run.then(() => undefined, () => undefined);
+    return run;
+  }
+
+  private async acquireSequential(weight: number): Promise<void> {
     const w = Math.min(weight, this.capacity);
     for (;;) {
       this.refill();

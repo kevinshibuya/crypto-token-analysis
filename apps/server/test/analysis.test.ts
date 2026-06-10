@@ -9,6 +9,15 @@ const fakeResult = {
   pivots: [], signals: [], meta: { lastUpdated: 0, candleCount: 0 },
 };
 
+describe('POST /api/analysis — timeout', () => {
+  it('returns 504 when the service exceeds the route timeout', async () => {
+    const analysisService = { analyze: () => new Promise(() => {}) } as never;
+    const app = buildApp({ analysisService, routeTimeoutMs: 20 });
+    const res = await app.inject({ method: 'POST', url: '/api/analysis', payload: { coin: 'BTC', interval: '1h' } });
+    expect(res.statusCode).toBe(504);
+  });
+});
+
 describe('POST /api/analysis', () => {
   it('returns analysis for a valid request', async () => {
     const analysisService = { analyze: async () => fakeResult } as any;

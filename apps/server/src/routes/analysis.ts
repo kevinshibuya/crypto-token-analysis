@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { AnalysisService, AnalysisRequest } from '../services/analysisService';
-import { SUPPORTED_INTERVALS, DEFAULTS, DEFAULT_LOOKBACK } from '../config';
+import { SUPPORTED_INTERVALS, DEFAULTS, DEFAULT_LOOKBACK, ROUTE_TIMEOUT_MS } from '../config';
+import { withTimeout } from '../util/withTimeout';
 
 const bodySchema = {
   type: 'object',
@@ -36,6 +37,7 @@ const bodySchema = {
   },
 } as const;
 
-export function registerAnalysisRoute(app: FastifyInstance, svc: AnalysisService): void {
-  app.post('/api/analysis', { schema: { body: bodySchema } }, async (req) => svc.analyze(req.body as AnalysisRequest));
+export function registerAnalysisRoute(app: FastifyInstance, svc: AnalysisService, timeoutMs = ROUTE_TIMEOUT_MS): void {
+  app.post('/api/analysis', { schema: { body: bodySchema } }, async (req) =>
+    withTimeout(svc.analyze(req.body as AnalysisRequest), timeoutMs, 'analysis'));
 }

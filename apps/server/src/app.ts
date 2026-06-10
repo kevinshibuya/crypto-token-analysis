@@ -13,11 +13,11 @@ export interface AppDeps {
   backtestService: BacktestService;
 }
 
-export function buildApp(deps: Partial<AppDeps> = {}): FastifyInstance {
+export function buildApp(deps: Partial<AppDeps> & { routeTimeoutMs?: number } = {}): FastifyInstance {
   const app = Fastify({ logger: false });
   registerHealthRoute(app);
   if (deps.marketsService) registerMarketsRoute(app, deps.marketsService);
-  if (deps.analysisService) registerAnalysisRoute(app, deps.analysisService);
-  if (deps.backtestService) registerBacktestRoute(app, deps.backtestService);
+  if (deps.analysisService) registerAnalysisRoute(app, deps.analysisService, deps.routeTimeoutMs);
+  if (deps.backtestService) registerBacktestRoute(app, deps.backtestService, deps.routeTimeoutMs);
   return app;
 }
