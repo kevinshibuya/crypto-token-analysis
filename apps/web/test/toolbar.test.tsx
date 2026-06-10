@@ -18,7 +18,7 @@ describe('MarketPicker', () => {
     const onChange = vi.fn();
     render(
       <MarketPicker
-        markets={[{ name: 'BTC', szDecimals: 5, maxLeverage: 50 }, { name: 'ETH', szDecimals: 4, maxLeverage: 50 }]}
+        markets={[{ name: 'BTC', szDecimals: 5, maxLeverage: 50, dayNtlVlm: 0 }, { name: 'ETH', szDecimals: 4, maxLeverage: 50, dayNtlVlm: 0 }]}
         value="BTC"
         onChange={onChange}
       />,

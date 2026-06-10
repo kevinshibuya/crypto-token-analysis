@@ -1,4 +1,5 @@
-import type { AnalysisConfig, AnalysisResponse, BacktestResponse, BacktestRunConfig, Interval, MarketsResponse } from './types';
+import type { AnalysisConfig, AnalysisResponse, BacktestResponse, BacktestRunConfig, Interval, MarketsResponse, SignalsResult } from './types';
+import type { SignalsSettings } from '../state/signalsSettings';
 
 export async function getMarkets(): Promise<MarketsResponse> {
   const res = await fetch('/api/markets');
@@ -47,5 +48,31 @@ export async function postBacktest(
     }),
   });
   if (!res.ok) throw new Error(`backtest failed: ${res.status}`);
+  return res.json();
+}
+
+export class ApiError extends Error {
+  constructor(message: string, readonly status: number) { super(message); }
+}
+
+export async function postSignals(
+  coin: string,
+  interval: Interval,
+  s: SignalsSettings,
+  opts: { force?: boolean; signal?: AbortSignal } = {},
+): Promise<SignalsResult> {
+  const res = await fetch('/api/signals', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    signal: opts.signal,
+    body: JSON.stringify({
+      coin, interval,
+      config: {
+        gate: s.gate, weights: s.weights, window: s.window,
+        ...(opts.force ? { force: true } : {}),
+      },
+    }),
+  });
+  if (!res.ok) throw new ApiError(`signals failed: ${res.status}`, res.status);
   return res.json();
 }

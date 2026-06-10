@@ -4,9 +4,10 @@ export type {
   Candle, IndicatorPoint, MovingAverageResult, VolumeBar, VolumeResult, VolumeProfileRow,
   VolumeProfileResult, PivotType, PivotLevel, MaType, Interval,
   Signal, SignalKind, SignalFamily, SetupResult, SetupMetrics, ScanResult,
+  TradePlan, ConfidenceBreakdown, ConfidenceWeights, SetupGate, SignalsResult,
 } from '@cta/core';
 
-export interface Market { name: string; szDecimals: number; maxLeverage: number; }
+export interface Market { name: string; szDecimals: number; maxLeverage: number; dayNtlVlm: number; }
 export interface MarketsResponse { markets: Market[]; updatedAt: number; }
 
 export interface MaConfig { type: MaType; period: number; color: string; }
