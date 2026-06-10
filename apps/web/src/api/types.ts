@@ -1,7 +1,9 @@
-import type { AnalysisResult, Interval, MaType } from '@cta/core';
+import type { AnalysisResult, MaType, Interval, Signal, SignalKind, ScanResult } from '@cta/core';
 
 export type {
-  Candle, IndicatorPoint, MovingAverageResult, VolumeBar, VolumeResult, VolumeProfileRow, VolumeProfileResult, PivotType, PivotLevel, MaType, Interval,
+  Candle, IndicatorPoint, MovingAverageResult, VolumeBar, VolumeResult, VolumeProfileRow,
+  VolumeProfileResult, PivotType, PivotLevel, MaType, Interval,
+  Signal, SignalKind, SignalFamily, SetupResult, SetupMetrics, ScanResult,
 } from '@cta/core';
 
 export interface Market { name: string; szDecimals: number; maxLeverage: number; }
@@ -20,4 +22,17 @@ export interface AnalysisConfig {
   pivotMaxLevels: number;
 }
 
-export type AnalysisResponse = AnalysisResult & { meta: { lastUpdated: number; candleCount: number } };
+export type AnalysisResponse = AnalysisResult & {
+  signals: Signal[];
+  meta: { lastUpdated: number; candleCount: number };
+};
+
+export interface BacktestRunConfig {
+  lookback?: number;
+  confluenceWindow: number;
+  minRR: number;
+  volumeSpikeK: number;
+  signalKinds?: SignalKind[];
+}
+
+export type BacktestResponse = ScanResult & { cached: boolean };

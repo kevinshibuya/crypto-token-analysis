@@ -15,8 +15,9 @@ export function useAnalysis(config: AnalysisConfig, debounceMs = 300): UseAnalys
   const [error, setError] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const forceRef = useRef(false);
 
-  const reload = useCallback(() => setNonce((n) => n + 1), []);
+  const reload = useCallback(() => { forceRef.current = true; setNonce((n) => n + 1); }, []);
   const key = JSON.stringify(config);
 
   useEffect(() => {
@@ -26,7 +27,9 @@ export function useAnalysis(config: AnalysisConfig, debounceMs = 300): UseAnalys
       setLoading(true);
       setError(null);
       try {
-        const res = await postAnalysis(config);
+        const force = forceRef.current;
+        forceRef.current = false;
+        const res = await postAnalysis(config, { force });
         if (!cancelled) setData(res);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
