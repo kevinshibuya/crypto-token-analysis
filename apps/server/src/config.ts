@@ -16,3 +16,7 @@ export const DEFAULTS = {
   pivotMergeTolerance: 0.003,
   pivotMaxLevels: 6,
 };
+
+export const MIN_BACKTEST_CANDLES = 50;
+export const BACKTEST_DEFAULT_LOOKBACK = 2000;
+export const ROUTE_TIMEOUT_MS = Number(process.env.ROUTE_TIMEOUT_MS ?? 15_000);
