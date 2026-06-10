@@ -63,3 +63,31 @@ export interface AnalysisResult {
   volumeProfile: VolumeProfileResult;
   pivots: PivotLevel[];
 }
+
+export type SignalDirection = 'bullish' | 'bearish';
+
+export type CandlePatternKind =
+  | 'bullish-engulfing' | 'bearish-engulfing'
+  | 'hammer' | 'shooting-star' | 'doji'
+  | 'morning-star' | 'evening-star'
+  | 'three-white-soldiers' | 'three-black-crows'
+  | 'bullish-harami' | 'bearish-harami';
+
+export type IndicatorSignalKind =
+  | 'rsi-oversold-exit' | 'rsi-overbought-exit'
+  | 'rsi-bullish-divergence' | 'rsi-bearish-divergence'
+  | 'ma-golden-cross' | 'ma-death-cross'
+  | 'price-cross-ma-up' | 'price-cross-ma-down'
+  | 'volume-spike-up' | 'volume-spike-down'
+  | 'sr-bounce-support' | 'sr-bounce-resistance'
+  | 'sr-break-up' | 'sr-break-down';
+
+export type SignalKind = CandlePatternKind | IndicatorSignalKind;
+
+export interface Signal {
+  kind: SignalKind;
+  direction: SignalDirection;
+  index: number; // candle index where the signal completes
+  t: number;     // open time of that candle, ms
+  meta?: Record<string, number>;
+}
