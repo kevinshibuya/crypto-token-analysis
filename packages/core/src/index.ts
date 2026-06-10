@@ -13,3 +13,5 @@ export {
   buildDetectorContext, alignToCandles, DEFAULT_DETECTOR_OPTIONS,
 } from './detectorContext';
 export type { DetectorContext, DetectorOptions, Detector, MaSpec } from './detectorContext';
+export { DETECTOR_REGISTRY, SIGNAL_KINDS, signalFamily, detectAll } from './detectors';
+export type { SignalFamily } from './detectors';
