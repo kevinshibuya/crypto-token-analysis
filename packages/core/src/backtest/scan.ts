@@ -44,8 +44,7 @@ function setupFromSignals(
     ? signals.filter((s) => s.kind === sortedKinds[0])
     : pairEntries(signals, sortedKinds[0], sortedKinds[1], cfg.confluenceWindow);
   const setupSignals = signals.filter((s) => sortedKinds.includes(s.kind));
-  const pivotPrices = ctx.pivots.map((p) => p.price);
-  const sim = simulate(candles, entries, setupSignals, pivotPrices, ctx.atr, cfg);
+  const sim = simulate(candles, entries, setupSignals, ctx.pivotPricesAt, ctx.atr, cfg);
   return { kinds: sortedKinds, metrics: computeMetrics(sim.trades, sim.filtered) };
 }
 

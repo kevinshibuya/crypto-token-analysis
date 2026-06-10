@@ -23,7 +23,7 @@ export function simulate(
   candles: Candle[],
   entries: Signal[],
   setupSignals: Signal[],
-  pivotPrices: number[],
+  pivotPricesAt: (i: number) => number[],
   atrByIndex: number[],
   cfg: SimConfig,
 ): SimResult {
@@ -44,7 +44,7 @@ export function simulate(
     const atrVal = atrByIndex[e.index];
     if (!Number.isFinite(atrVal) || atrVal <= 0) { filtered++; continue; }
     const entryPrice = candles[entryIndex].o;
-    const bracket = computeBracket(entryPrice, e.direction, pivotPrices, atrVal, cfg);
+    const bracket = computeBracket(entryPrice, e.direction, pivotPricesAt(e.index), atrVal, cfg);
     if (!bracket) { filtered++; continue; }
 
     const long = e.direction === 'bullish';
@@ -63,7 +63,7 @@ export function simulate(
       // close-of-candle updates — take effect from the next candle
       const opp = oppositeAt.get(j);
       if (opp?.has(long ? 'bearish' : 'bullish')) pendingOpposite = true;
-      for (const P of pivotPrices) {
+      for (const P of pivotPricesAt(j)) {
         if (long && P > entryPrice && c.c > P) stop = Math.max(stop, P - BRACKET_PAD_ATR * atrVal);
         if (!long && P < entryPrice && c.c < P) stop = Math.min(stop, P + BRACKET_PAD_ATR * atrVal);
       }

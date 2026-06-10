@@ -37,7 +37,8 @@ export interface DetectorContext {
   maSlow: number[];
   volumeSma: number[];
   atr: number[];
-  pivots: PivotLevel[];
+  pivots: PivotLevel[];                    // full-history levels (current state, chart display)
+  pivotPricesAt: (i: number) => number[];  // level prices knowable at the close of candle i (walk-forward)
   opts: DetectorOptions;
 }
 
@@ -55,6 +56,15 @@ export function buildDetectorContext(
   candles: Candle[],
   opts: DetectorOptions = DEFAULT_DETECTOR_OPTIONS,
 ): DetectorContext {
+  const memo = new Map<number, number[]>();
+  const pivotPricesAt = (i: number): number[] => {
+    const key = Math.max(0, Math.min(i, candles.length - 1));
+    const hit = memo.get(key);
+    if (hit) return hit;
+    const prices = pivots(candles.slice(0, key + 1), opts.pivots).map((p) => p.price);
+    memo.set(key, prices);
+    return prices;
+  };
   return {
     rsi: alignToCandles(candles, rsi(candles, opts.rsiPeriod)),
     maFast: alignToCandles(candles, maPoints(candles, opts.maFast)),
@@ -62,6 +72,7 @@ export function buildDetectorContext(
     volumeSma: alignToCandles(candles, volume(candles, opts.volumeSmaPeriod).sma),
     atr: alignToCandles(candles, atr(candles, opts.atrPeriod)),
     pivots: pivots(candles, opts.pivots),
+    pivotPricesAt,
     opts,
   };
 }

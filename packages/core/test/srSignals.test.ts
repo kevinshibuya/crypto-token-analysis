@@ -34,4 +34,11 @@ describe('detectSrSignals', () => {
     const ctx = ctxWith({ pivots: [level(100)], atr: [NaN, NaN] });
     expect(detectSrSignals(candles, ctx)).toEqual([]);
   });
+
+  it('ignores levels not yet known at the bar (walk-forward)', () => {
+    // same fixture as the support bounce, but the level only becomes known at i >= 2
+    const candles = [candle(1, 102, 103, 101.5, 102), candle(2, 102, 102.5, 100.2, 101)];
+    const ctx = ctxWith({ pivotPricesAt: (i) => (i >= 2 ? [100] : []), atr: [2, 2] });
+    expect(detectSrSignals(candles, ctx)).toEqual([]);
+  });
 });

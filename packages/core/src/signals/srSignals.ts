@@ -2,11 +2,11 @@ import type { Candle, Signal, SignalKind } from '../types';
 import type { DetectorContext } from '../detectorContext';
 
 export function detectSrSignals(candles: Candle[], ctx: DetectorContext): Signal[] {
-  const levels = ctx.pivots.map((p) => p.price);
   const out: Signal[] = [];
   for (let i = 1; i < candles.length; i++) {
     const tol = ctx.opts.srTolAtrMult * ctx.atr[i];
     if (!Number.isFinite(tol)) continue;
+    const levels = ctx.pivotPricesAt(i);
     const prev = candles[i - 1];
     const c = candles[i];
     const seen = new Set<SignalKind>();

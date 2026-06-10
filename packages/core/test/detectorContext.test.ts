@@ -34,3 +34,23 @@ describe('buildDetectorContext', () => {
     expect(ctx.opts.rsiPeriod).toBe(3);
   });
 });
+
+describe('pivotPricesAt (walk-forward)', () => {
+  const flat = (t: number): Candle => ({ t, o: 10, h: 10.05, l: 9.95, c: 10, v: 1 });
+  const peak = (t: number, h: number): Candle => ({ t, o: 10, h, l: 9.95, c: 10, v: 1 });
+  // peak at index 3; with lookback 2 it is confirmed once index 5 exists
+  const candles = [flat(1), flat(2), flat(3), peak(4, 100), flat(5), flat(6), flat(7), flat(8)];
+  const opts = { ...DEFAULT_DETECTOR_OPTIONS, pivots: { lookback: 2, maxLevels: 3, mergeTolerance: 0.003 } };
+
+  it('excludes pivots not yet confirmed at index i', () => {
+    const ctx = buildDetectorContext(candles, opts);
+    expect(ctx.pivotPricesAt(4)).toEqual([]);
+    expect(ctx.pivotPricesAt(5)).toEqual([100]);
+  });
+
+  it('memoizes per index and clamps out-of-range indices', () => {
+    const ctx = buildDetectorContext(candles, opts);
+    expect(ctx.pivotPricesAt(5)).toBe(ctx.pivotPricesAt(5));
+    expect(ctx.pivotPricesAt(999)).toEqual(ctx.pivots.map((p) => p.price));
+  });
+});
