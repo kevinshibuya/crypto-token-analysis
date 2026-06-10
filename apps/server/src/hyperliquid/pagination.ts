@@ -1,7 +1,7 @@
-import type { Candle } from '@cta/core';
+import type { Candle, Interval } from '@cta/core';
 import { MAX_CANDLES_PER_REQUEST } from '../config';
 
-export const INTERVAL_MS: Record<string, number> = {
+export const INTERVAL_MS: Record<Interval, number> = {
   '1m': 60_000, '3m': 180_000, '5m': 300_000, '15m': 900_000, '30m': 1_800_000,
   '1h': 3_600_000, '2h': 7_200_000, '4h': 14_400_000, '8h': 28_800_000, '12h': 43_200_000,
   '1d': 86_400_000, '3d': 259_200_000, '1w': 604_800_000, '1M': 2_592_000_000,
@@ -13,7 +13,7 @@ export async function fetchCandles(
   startTime: number,
   endTime: number,
 ): Promise<Candle[]> {
-  const step = INTERVAL_MS[interval];
+  const step = INTERVAL_MS[interval as Interval];
   if (!step) throw new Error(`unknown interval ${interval}`);
   const windowMs = step * MAX_CANDLES_PER_REQUEST;
   const byT = new Map<number, Candle>();

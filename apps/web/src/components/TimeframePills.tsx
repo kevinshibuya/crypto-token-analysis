@@ -1,6 +1,7 @@
 import { SUPPORTED_INTERVALS } from '../intervals';
+import type { Interval } from '../intervals';
 
-export function TimeframePills({ value, onChange }: { value: string; onChange: (i: string) => void }) {
+export function TimeframePills({ value, onChange }: { value: Interval; onChange: (i: Interval) => void }) {
   return (
     <div className="flex flex-wrap gap-1">
       {SUPPORTED_INTERVALS.map((i) => (

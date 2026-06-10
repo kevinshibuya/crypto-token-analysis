@@ -7,3 +7,5 @@ export { volumeProfile } from './volumeProfile';
 export { pivots } from './pivots';
 export { atr } from './atr';
 export type { PivotOptions } from './pivots';
+export { SUPPORTED_INTERVALS } from './intervals';
+export type { Interval } from './intervals';

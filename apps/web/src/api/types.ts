@@ -1,8 +1,9 @@
-import type { AnalysisResult, MaType } from '@cta/core';
+import type { AnalysisResult, Interval, MaType } from '@cta/core';
 
 export type {
   Candle, IndicatorPoint, MovingAverageResult, VolumeBar, VolumeResult, VolumeProfileRow, VolumeProfileResult, PivotType, PivotLevel, MaType,
 } from '@cta/core';
+export type { Interval } from '@cta/core';
 
 export interface Market { name: string; szDecimals: number; maxLeverage: number; }
 export interface MarketsResponse { markets: Market[]; updatedAt: number; }
@@ -11,7 +12,7 @@ export interface MaConfig { type: MaType; period: number; color: string; }
 
 export interface AnalysisConfig {
   coin: string;
-  interval: string;
+  interval: Interval;
   lookback: number;
   rsiPeriod: number;
   movingAverages: MaConfig[];

@@ -1,13 +1,14 @@
 import type { Market } from '../api/types';
+import type { Interval } from '../intervals';
 import { MarketPicker } from './MarketPicker';
 import { TimeframePills } from './TimeframePills';
 
 export function Toolbar(props: {
   markets: Market[];
   coin: string;
-  interval: string;
+  interval: Interval;
   onCoin: (c: string) => void;
-  onInterval: (i: string) => void;
+  onInterval: (i: Interval) => void;
   onRefresh: () => void;
   status: string;
 }) {
