@@ -23,3 +23,11 @@ export { computeMetrics } from './backtest/metrics';
 export type { SetupMetrics } from './backtest/metrics';
 export { runScan, runSetup, pairEntries, DEFAULT_BACKTEST_CONFIG } from './backtest/scan';
 export type { BacktestConfig, SetupResult, ScanResult } from './backtest/scan';
+export { qualifySetups } from './decide/qualify';
+export {
+  EDGE_SCALE, SAMPLE_HALF, CONFLUENCE_SAT, RR_SAT,
+  DEFAULT_GATE, DEFAULT_WEIGHTS, DEFAULT_WINDOW,
+} from './decide/constants';
+export type {
+  SetupGate, ConfidenceWeights, ConfidenceBreakdown, TradePlan, DecideConfig, SignalsResult,
+} from './decide/types';
