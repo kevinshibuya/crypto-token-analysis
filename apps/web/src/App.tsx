@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getMarkets } from './api/client';
-import type { AnalysisConfig, Market } from './api/types';
+import type { AnalysisConfig, Market, TradePlan } from './api/types';
 import { useAnalysis } from './state/useAnalysis';
 import { Toolbar } from './components/Toolbar';
 import type { View } from './components/Toolbar';
@@ -29,11 +29,19 @@ export function App() {
   const [config, setConfig] = useState<AnalysisConfig>(DEFAULT_CONFIG);
   const [view, setView] = useState<View>('chart');
   const [families, setFamilies] = useState<FamilyToggles>(DEFAULT_FAMILIES);
+  const [plan, setPlan] = useState<{ entry: number; stop: number; target: number } | null>(null);
   const { data, loading, error, reload } = useAnalysis(config);
 
   useEffect(() => {
     getMarkets().then((r) => setMarkets(r.markets)).catch((e) => console.error('markets fetch failed', e));
   }, []);
+
+  useEffect(() => { setPlan(null); }, [config.coin, config.interval]);
+
+  const onViewPlan = (p: TradePlan) => {
+    setPlan({ entry: p.entry, stop: p.stop, target: p.target });
+    setView('chart');
+  };
 
   const status = useMemo(() => {
     if (error) return `error: ${error}`;
@@ -59,7 +67,7 @@ export function App() {
         status={status}
       />
       <div className={view === 'chart' ? 'flex min-h-0 flex-1' : 'hidden'}>
-        <Chart data={data} maColors={maColors} markers={markers} />
+        <Chart data={data} maColors={maColors} markers={markers} plan={plan} />
         <IndicatorDrawer config={config} onChange={setConfig} families={families} onFamilies={setFamilies} />
       </div>
       <div className={view === 'backtest' ? 'flex min-h-0 flex-1' : 'hidden'}>
@@ -72,7 +80,7 @@ export function App() {
           markets={markets}
           active={view === 'signals'}
           onCoin={(coin) => setConfig((prev) => ({ ...prev, coin }))}
-          onViewPlan={() => {}}
+          onViewPlan={onViewPlan}
         />
       </div>
     </div>

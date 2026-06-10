@@ -10,7 +10,12 @@ import type { ChartMarker } from '../signals';
 
 const toSec = (ms: number) => Math.floor(ms / 1000) as UTCTimestamp;
 
-export function Chart({ data, maColors, markers }: { data: AnalysisResponse | null; maColors: string[]; markers: ChartMarker[] }) {
+export function Chart({ data, maColors, markers, plan }: {
+  data: AnalysisResponse | null;
+  maColors: string[];
+  markers: ChartMarker[];
+  plan: { entry: number; stop: number; target: number } | null;
+}) {
   const priceRef = useRef<HTMLDivElement>(null);
   const rsiRef = useRef<HTMLDivElement>(null);
   const priceChart = useRef<IChartApi | null>(null);
@@ -20,6 +25,7 @@ export function Chart({ data, maColors, markers }: { data: AnalysisResponse | nu
   const rsiLine = useRef<ISeriesApi<'Line'> | null>(null);
   const maRefs = useRef<ISeriesApi<'Line'>[]>([]);
   const pivotLines = useRef<IPriceLine[]>([]);
+  const planLines = useRef<IPriceLine[]>([]);
   const [tick, setTick] = useState(0);
   const [width, setWidth] = useState(0);
 
@@ -58,7 +64,7 @@ export function Chart({ data, maColors, markers }: { data: AnalysisResponse | nu
       setTick((t) => t + 1);
     });
     ro.observe(priceRef.current);
-    return () => { ro.disconnect(); pc.remove(); rc.remove(); maRefs.current = []; pivotLines.current = []; };
+    return () => { ro.disconnect(); pc.remove(); rc.remove(); maRefs.current = []; pivotLines.current = []; planLines.current = []; };
   }, []);
 
   useEffect(() => {
@@ -96,6 +102,23 @@ export function Chart({ data, maColors, markers }: { data: AnalysisResponse | nu
       (window as unknown as { __markerCount?: number }).__markerCount = markers.length;
     }
   }, [markers, data]);
+
+  useEffect(() => {
+    const c = candle.current;
+    if (!c) return;
+    for (const pl of planLines.current) c.removePriceLine(pl);
+    planLines.current = [];
+    if (plan) {
+      planLines.current = [
+        c.createPriceLine({ price: plan.entry, color: '#e2e8f0', lineStyle: LineStyle.Solid, lineWidth: 1, axisLabelVisible: true, title: 'entry' }),
+        c.createPriceLine({ price: plan.stop, color: '#ef4444', lineStyle: LineStyle.Dashed, lineWidth: 1, axisLabelVisible: true, title: 'stop' }),
+        c.createPriceLine({ price: plan.target, color: '#22c55e', lineStyle: LineStyle.Dashed, lineWidth: 1, axisLabelVisible: true, title: 'target' }),
+      ];
+    }
+    if (import.meta.env.DEV) {
+      (window as unknown as { __planLineCount?: number }).__planLineCount = planLines.current.length;
+    }
+  }, [plan, data]);
 
   const priceToY = (price: number): number | null => candle.current?.priceToCoordinate(price) ?? null;
 
