@@ -6,43 +6,43 @@ Detect candlestick + indicator signals on Hyperliquid pairs and backtest them (s
 
 ### Core — indicators & signal model
 
-- [ ] `@cta/core` exports `atr(candles, period)` (Wilder-smoothed, default 14) whose values match hand-computed references.
-- [ ] `SUPPORTED_INTERVALS` and the `Interval` union live in `@cta/core`; server config, route validation, and web `intervals.ts` consume them with no duplicated interval list.
-- [ ] Each of the 10 candle-pattern detectors (bullish/bearish engulfing, hammer, shooting star, doji, morning star, evening star, three white soldiers, three black crows, bullish/bearish harami) returns a correctly-located `Signal` on a positive fixture and nothing on a near-miss fixture.
-- [ ] RSI detectors emit signals for 30/70 zone exits and bullish/bearish divergence on fixtures.
-- [ ] MA detectors emit signals for fast/slow golden and death crosses and for price crossing an MA on fixtures.
-- [ ] Volume-spike detector emits direction-tagged signals when volume > k × volume-SMA (default k = 2) on fixtures.
-- [ ] S/R detectors emit bounce and break signals against supplied pivot levels on fixtures.
-- [ ] Running every detector in `DETECTOR_REGISTRY` over a composite fixture yields signals from all five families through the single `detect(candles, context)` interface.
+- [x] `@cta/core` exports `atr(candles, period)` (Wilder-smoothed, default 14) whose values match hand-computed references.
+- [x] `SUPPORTED_INTERVALS` and the `Interval` union live in `@cta/core`; server config, route validation, and web `intervals.ts` consume them with no duplicated interval list.
+- [x] Each of the 10 candle-pattern detectors (bullish/bearish engulfing, hammer, shooting star, doji, morning star, evening star, three white soldiers, three black crows, bullish/bearish harami) returns a correctly-located `Signal` on a positive fixture and nothing on a near-miss fixture.
+- [x] RSI detectors emit signals for 30/70 zone exits and bullish/bearish divergence on fixtures.
+- [x] MA detectors emit signals for fast/slow golden and death crosses and for price crossing an MA on fixtures.
+- [x] Volume-spike detector emits direction-tagged signals when volume > k × volume-SMA (default k = 2) on fixtures.
+- [x] S/R detectors emit bounce and break signals against supplied pivot levels on fixtures.
+- [x] Running every detector in `DETECTOR_REGISTRY` over a composite fixture yields signals from all five families through the single `detect(candles, context)` interface.
 
 ### Core — backtest engine
 
-- [ ] A single-signal backtest enters at next candle open, places the stop beyond the nearest opposing pivot and target at the next pivot in trade direction, applies the ATR floor/cap, and skips trades whose computed R/R is below the minimum (default 1.5), counting them as filtered.
-- [ ] In-trade management is scenario-verified: breakeven move at +1R, structure ratchet to newly cleared pivots, opposite-direction signal closes at next open, a candle touching both stop and target counts as a stop (conservative intrabar rule), and trades open at end of history close at the final candle tagged `end-of-data`.
-- [ ] With no usable pivot structure near entry, brackets fall back to ATR-only without skipping the trade.
-- [ ] A scan runs every single plus every same-direction pair (both signals within the confluence window, default 3 candles; entry after the later signal), with at most one open position per run, and returns results ranked by expectancy.
-- [ ] Each scan result reports trade count, win rate, avg R, profit factor, expectancy, max drawdown (in R), and filtered-trade count — aggregates only, no per-trade lists.
-- [ ] Identical candles + config produce identical scan output (determinism test).
-- [ ] No pivot lookahead anywhere in the backtest: S/R signal detection at bar i, the entry bracket, and the in-trade ratchet each use only pivot levels confirmed by that bar (a swing pivot is confirmed `lookback` bars after its extreme). Walk-forward levels come from a memoized per-index provider; full-history levels remain available for chart display.
+- [x] A single-signal backtest enters at next candle open, places the stop beyond the nearest opposing pivot and target at the next pivot in trade direction, applies the ATR floor/cap, and skips trades whose computed R/R is below the minimum (default 1.5), counting them as filtered.
+- [x] In-trade management is scenario-verified: breakeven move at +1R, structure ratchet to newly cleared pivots, opposite-direction signal closes at next open, a candle touching both stop and target counts as a stop (conservative intrabar rule), and trades open at end of history close at the final candle tagged `end-of-data`.
+- [x] With no usable pivot structure near entry, brackets fall back to ATR-only without skipping the trade.
+- [x] A scan runs every single plus every same-direction pair (both signals within the confluence window, default 3 candles; entry after the later signal), with at most one open position per run, and returns results ranked by expectancy.
+- [x] Each scan result reports trade count, win rate, avg R, profit factor, expectancy, max drawdown (in R), and filtered-trade count — aggregates only, no per-trade lists.
+- [x] Identical candles + config produce identical scan output (determinism test).
+- [x] No pivot lookahead anywhere in the backtest: S/R signal detection at bar i, the entry bracket, and the in-trade ratchet each use only pivot levels confirmed by that bar (a swing pivot is confirmed `lookback` bars after its extreme). Walk-forward levels come from a memoized per-index provider; full-history levels remain available for chart display.
 
 ### Server
 
-- [ ] `POST /api/backtest` returns the ranked scan for a coin/interval; a `signalKinds` array in config backtests exactly that custom set.
-- [ ] Backtest validation: unknown coin → 404, unknown signal kind → 400, fewer than 50 candles → 422 with a clear message.
-- [ ] Repeating a backtest request with unchanged candles and config is served from the SQLite result cache (keyed by coin/interval/config-hash/last-candle-time); a new candle head triggers recomputation.
-- [ ] `POST /api/analysis` responses include `signals: Signal[]` from the full detector registry.
-- [ ] `POST /api/analysis` with `force: true` refetches candles inside the staleness window, and the web Refresh button sends it.
-- [ ] Unknown coin on `/api/analysis` returns 404 (no more 200-with-zero-candles).
-- [ ] Minor-batch fixes verified: rate limiter serializes concurrent acquisitions; a route-level timeout caps the HL-outage hang; tail backfill fetches only the missing range; `PivotLevel.touches` counts independent visits; favicon served with no console 404.
+- [x] `POST /api/backtest` returns the ranked scan for a coin/interval; a `signalKinds` array in config backtests exactly that custom set.
+- [x] Backtest validation: unknown coin → 404, unknown signal kind → 400, fewer than 50 candles → 422 with a clear message.
+- [x] Repeating a backtest request with unchanged candles and config is served from the SQLite result cache (keyed by coin/interval/config-hash/last-candle-time); a new candle head triggers recomputation.
+- [x] `POST /api/analysis` responses include `signals: Signal[]` from the full detector registry.
+- [x] `POST /api/analysis` with `force: true` refetches candles inside the staleness window, and the web Refresh button sends it.
+- [x] Unknown coin on `/api/analysis` returns 404 (no more 200-with-zero-candles).
+- [x] Minor-batch fixes verified: rate limiter serializes concurrent acquisitions; a route-level timeout caps the HL-outage hang; tail backfill fetches only the missing range; `PivotLevel.touches` counts independent visits; favicon served with no console 404.
 
 ### Web
 
-- [ ] Toolbar offers Chart | Backtest tabs; switching tabs preserves the selected coin and interval.
-- [ ] Chart tab renders signal markers (▲ bullish below / ▼ bearish above, short labels) and the indicator drawer toggles each signal family independently.
-- [ ] Backtest tab shows a config strip (min R/R, confluence window, volume-spike k, Run scan) and a sortable results table defaulting to expectancy rank; rows with < 20 trades render dimmed with a low-sample badge.
-- [ ] Selecting signal kinds in the custom-set tester and hitting "Test selection" pins that result row above the scan ranking.
-- [ ] `useBacktest` exposes loading/error/result state, aborts in-flight scans on coin/interval change, and the Backtest tab shows a scan-in-flight state.
-- [ ] Browser e2e (puppeteer-core + system Chrome): markers are visibly rendered on the chart and a live scan against Hyperliquid data populates the results table.
+- [x] Toolbar offers Chart | Backtest tabs; switching tabs preserves the selected coin and interval.
+- [x] Chart tab renders signal markers (▲ bullish below / ▼ bearish above, short labels) and the indicator drawer toggles each signal family independently.
+- [x] Backtest tab shows a config strip (min R/R, confluence window, volume-spike k, Run scan) and a sortable results table defaulting to expectancy rank; rows with < 20 trades render dimmed with a low-sample badge.
+- [x] Selecting signal kinds in the custom-set tester and hitting "Test selection" pins that result row above the scan ranking.
+- [x] `useBacktest` exposes loading/error/result state, aborts in-flight scans on coin/interval change, and the Backtest tab shows a scan-in-flight state.
+- [x] Browser e2e (puppeteer-core + system Chrome): markers are visibly rendered on the chart and a live scan against Hyperliquid data populates the results table.
 
 ## Context
 

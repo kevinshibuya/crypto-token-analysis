@@ -2473,7 +2473,7 @@ git commit -m "fix(core): walk-forward pivots — no lookahead in signals, brack
 - Modify: `apps/server/src/services/candleService.ts`
 - Test: `apps/server/test/candleService.test.ts` (add cases — keep existing ones passing; reuse the file's existing fake client/store helpers if present, otherwise use the fakes below)
 
-- [ ] **Step 1: Add the failing tests** (append; adapt the fakes to the file's existing style)
+- [x] **Step 1: Add the failing tests** (append; adapt the fakes to the file's existing style)
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -2549,12 +2549,12 @@ describe('candleService force + tail-only backfill', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify the new cases fail**
+- [x] **Step 2: Run to verify the new cases fail**
 
 Run: `pnpm --filter @cta/server test -- candleService`
 Expected: new tests FAIL (no `force` option; tail backfill currently fetches `wantStart..end`)
 
-- [ ] **Step 3: Rewrite `getCandles` in `apps/server/src/services/candleService.ts`**
+- [x] **Step 3: Rewrite `getCandles` in `apps/server/src/services/candleService.ts`**
 
 ```ts
   async getCandles(
@@ -2589,12 +2589,12 @@ Expected: new tests FAIL (no `force` option; tail backfill currently fetches `wa
 
 (`fetchAndStore` is unchanged.)
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/server test -- candleService`
 Expected: all PASS, including pre-existing cases
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/server/src/services/candleService.ts apps/server/test/candleService.test.ts
@@ -2610,7 +2610,7 @@ git commit -m "feat(server): force refresh option and tail-only backfill in cand
 - Modify: `apps/server/src/services/analysisService.ts`, `apps/server/src/routes/analysis.ts`
 - Test: `apps/server/test/analysis.test.ts` (add cases)
 
-- [ ] **Step 1: Add the failing tests** (append to `apps/server/test/analysis.test.ts`)
+- [x] **Step 1: Add the failing tests** (append to `apps/server/test/analysis.test.ts`)
 
 ```ts
 import { AnalysisService } from '../src/services/analysisService';
@@ -2668,12 +2668,12 @@ it('accepts a force flag', async () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/server test -- analysis`
 Expected: FAIL (no `force` field, no signals, no 404)
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // apps/server/src/errors.ts — Fastify maps `statusCode` on thrown errors automatically
@@ -2759,12 +2759,12 @@ export class AnalysisService {
     force: { type: 'boolean', default: false },
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/server test`
 Expected: all PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/server/src/errors.ts apps/server/src/services/analysisService.ts apps/server/src/routes/analysis.ts apps/server/test/analysis.test.ts
@@ -2780,7 +2780,7 @@ git commit -m "feat(server): signals in analysis, 404 unknown coin, force refres
 - Create: `apps/server/src/cache/backtestStore.ts`
 - Test: `apps/server/test/backtestStore.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -2810,12 +2810,12 @@ describe('BacktestStore', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/server test -- backtestStore`
 Expected: FAIL (module missing)
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `apps/server/src/cache/db.ts` — append to the `db.exec` DDL string:
 
@@ -2858,12 +2858,12 @@ export class BacktestStore {
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/server test -- backtestStore`
 Expected: PASS (3 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/server/src/cache/db.ts apps/server/src/cache/backtestStore.ts apps/server/test/backtestStore.test.ts
@@ -2879,7 +2879,7 @@ git commit -m "feat(server): SQLite backtest result store"
 - Modify: `apps/server/src/config.ts`, `apps/server/src/app.ts`, `apps/server/src/server.ts`
 - Test: `apps/server/test/backtest.test.ts`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -2962,12 +2962,12 @@ describe('POST /api/backtest', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/server test -- backtest.test`
 Expected: FAIL (modules missing)
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `apps/server/src/config.ts` — append:
 
@@ -3122,12 +3122,12 @@ const backtestService = new BacktestService(candleService, new BacktestStore(db)
 const app = buildApp({ marketsService, analysisService, backtestService });
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/server test`
 Expected: all PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/server/src/services/backtestService.ts apps/server/src/routes/backtest.ts apps/server/src/util/withTimeout.ts apps/server/src/config.ts apps/server/src/app.ts apps/server/src/server.ts apps/server/test/backtest.test.ts
@@ -3142,7 +3142,7 @@ git commit -m "feat(server): POST /api/backtest with scan, validation and result
 - Modify: `apps/server/src/hyperliquid/rateLimiter.ts`, `apps/server/src/routes/analysis.ts`
 - Test: `apps/server/test/rateLimiter.test.ts` (add case), `apps/server/test/analysis.test.ts` (add case)
 
-- [ ] **Step 1: Add the failing tests**
+- [x] **Step 1: Add the failing tests**
 
 Append to `apps/server/test/rateLimiter.test.ts` (reuse its existing fake-clock helpers if the style differs):
 
@@ -3173,12 +3173,12 @@ it('returns 504 when the service exceeds the route timeout', async () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/server test -- rateLimiter analysis`
 Expected: both new tests FAIL
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `apps/server/src/hyperliquid/rateLimiter.ts` — rename the existing `acquire` body to `acquireSequential` and add a promise-chain mutex (update the class doc comment: it IS now concurrency-safe):
 
@@ -3217,12 +3217,12 @@ export function buildApp(deps: Partial<AppDeps> & { routeTimeoutMs?: number } = 
   if (deps.backtestService) registerBacktestRoute(app, deps.backtestService, deps.routeTimeoutMs);
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/server test`
 Expected: all PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/server/src/hyperliquid/rateLimiter.ts apps/server/src/routes/analysis.ts apps/server/src/app.ts apps/server/test/rateLimiter.test.ts apps/server/test/analysis.test.ts
@@ -3238,7 +3238,7 @@ git commit -m "fix(server): serialize rate-limiter acquires; cap route latency w
 - Create: `apps/web/public/favicon.svg`
 - Test: `apps/web/test/useAnalysis.test.ts` (add case)
 
-- [ ] **Step 1: Add the failing test** (append to `apps/web/test/useAnalysis.test.ts`, matching its existing fetch-mock style)
+- [x] **Step 1: Add the failing test** (append to `apps/web/test/useAnalysis.test.ts`, matching its existing fetch-mock style)
 
 ```ts
 const config = {
@@ -3261,12 +3261,12 @@ it('sends force: true on reload', async () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/web test -- useAnalysis`
 Expected: FAIL (`force` is undefined in the request body)
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `apps/web/src/api/types.ts` — extend the re-exports and add backtest types:
 
@@ -3380,12 +3380,12 @@ export async function postBacktest(
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/web test && pnpm --filter @cta/web exec tsc --noEmit`
 Expected: PASS, no tsc errors
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/api/types.ts apps/web/src/api/client.ts apps/web/src/state/useAnalysis.ts apps/web/test/useAnalysis.test.ts apps/web/public/favicon.svg apps/web/index.html
@@ -3400,7 +3400,7 @@ git commit -m "feat(web): backtest API client, force refresh, favicon"
 - Modify: `apps/web/src/components/Toolbar.tsx`, `apps/web/src/App.tsx`
 - Test: `apps/web/test/toolbar.test.tsx` (add cases)
 
-- [ ] **Step 1: Add the failing tests** (append to `apps/web/test/toolbar.test.tsx`)
+- [x] **Step 1: Add the failing tests** (append to `apps/web/test/toolbar.test.tsx`)
 
 ```ts
 import { Toolbar } from '../src/components/Toolbar';
@@ -3423,12 +3423,12 @@ describe('Toolbar tabs', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/web test -- toolbar`
 Expected: FAIL (no `view`/`onView` props)
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `apps/web/src/components/Toolbar.tsx` — add view props and the tab pair (insert the tabs right after `<MarketPicker …/>`):
 
@@ -3506,12 +3506,12 @@ import type { View } from './components/Toolbar';
       </div>
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/web test && pnpm --filter @cta/web exec tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/components/Toolbar.tsx apps/web/src/App.tsx apps/web/test/toolbar.test.tsx
@@ -3527,7 +3527,7 @@ git commit -m "feat(web): Chart/Backtest tab switcher preserving coin and interv
 - Modify: `apps/web/src/components/Chart.tsx`, `apps/web/src/components/IndicatorDrawer.tsx`, `apps/web/src/App.tsx`
 - Test: `apps/web/test/signals.test.ts`, `apps/web/test/indicatorDrawer.test.tsx` (add case)
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 // apps/web/test/signals.test.ts
@@ -3580,12 +3580,12 @@ it('toggles a signal family', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/web test -- signals indicatorDrawer`
 Expected: FAIL
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // apps/web/src/signals.ts
@@ -3698,12 +3698,12 @@ import { buildMarkers, DEFAULT_FAMILIES, type FamilyToggles } from './signals';
         <IndicatorDrawer config={config} onChange={setConfig} families={families} onFamilies={setFamilies} />
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/web test && pnpm --filter @cta/web exec tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/signals.ts apps/web/src/components/Chart.tsx apps/web/src/components/IndicatorDrawer.tsx apps/web/src/App.tsx apps/web/test/signals.test.ts apps/web/test/indicatorDrawer.test.tsx
@@ -3718,7 +3718,7 @@ git commit -m "feat(web): chart signal markers with per-family toggles"
 - Create: `apps/web/src/state/useBacktest.ts`
 - Test: `apps/web/test/useBacktest.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, it, expect, vi } from 'vitest';
@@ -3759,12 +3759,12 @@ describe('useBacktest', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/web test -- useBacktest`
 Expected: FAIL (module missing)
 
-- [ ] **Step 3: Implement `apps/web/src/state/useBacktest.ts`**
+- [x] **Step 3: Implement `apps/web/src/state/useBacktest.ts`**
 
 ```ts
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -3814,12 +3814,12 @@ export function useBacktest(coin: string, interval: Interval): UseBacktest {
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/web test -- useBacktest`
 Expected: PASS (3 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/state/useBacktest.ts apps/web/test/useBacktest.test.ts
@@ -3835,7 +3835,7 @@ git commit -m "feat(web): useBacktest hook with abort-on-context-change"
 - Modify: `apps/web/src/App.tsx` (replace the Task 21 placeholder)
 - Test: `apps/web/test/backtestPanel.test.tsx`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```tsx
 import { describe, it, expect, vi } from 'vitest';
@@ -3897,12 +3897,12 @@ describe('BacktestPanel', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/web test -- backtestPanel`
 Expected: FAIL (modules missing)
 
-- [ ] **Step 3: Implement the table**
+- [x] **Step 3: Implement the table**
 
 ```tsx
 // apps/web/src/components/BacktestTable.tsx
@@ -3986,7 +3986,7 @@ export function BacktestTable({ results, pinned }: { results: SetupResult[]; pin
 }
 ```
 
-- [ ] **Step 4: Implement the panel**
+- [x] **Step 4: Implement the panel**
 
 ```tsx
 // apps/web/src/components/BacktestPanel.tsx
@@ -4087,12 +4087,12 @@ import { BacktestPanel } from './components/BacktestPanel';
       </div>
 ```
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `pnpm --filter @cta/web test && pnpm --filter @cta/web exec tsc --noEmit`
 Expected: all PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apps/web/src/components/BacktestTable.tsx apps/web/src/components/BacktestPanel.tsx apps/web/src/App.tsx apps/web/test/backtestPanel.test.tsx
@@ -4107,11 +4107,11 @@ git commit -m "feat(web): backtest tab with config strip, ranked table, custom s
 - Create: `e2e/phase2.mjs`
 - Modify: root `package.json` (devDependency), `.gitignore` (add `e2e/out/`)
 
-- [ ] **Step 1: Install puppeteer-core at the workspace root** (skip if already present in root `package.json`)
+- [x] **Step 1: Install puppeteer-core at the workspace root** (skip if already present in root `package.json`)
 
 Run: `pnpm add -D -w puppeteer-core`
 
-- [ ] **Step 2: Write `e2e/phase2.mjs`**
+- [x] **Step 2: Write `e2e/phase2.mjs`**
 
 ```js
 // Drives the real app against live Hyperliquid data with the system Chrome.
@@ -4160,7 +4160,7 @@ console.log('E2E PASS');
 
 Add `e2e/out/` to `.gitignore`.
 
-- [ ] **Step 3: Full verification suite**
+- [x] **Step 3: Full verification suite**
 
 Run, in order, all from repo root:
 
@@ -4174,7 +4174,7 @@ node e2e/phase2.mjs                           # expect: "E2E PASS"
 
 Inspect `e2e/out/chart.png` (markers visible on candles — Phase 1 lesson: don't trust the DOM alone, look at the pixels) and `e2e/out/backtest.png` (ranked table with dimmed low-sample rows).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add e2e/phase2.mjs package.json pnpm-lock.yaml .gitignore
