@@ -19,6 +19,10 @@ export interface MetaUniverseItem {
   maxLeverage: number;
 }
 
+interface RawAssetCtx {
+  dayNtlVlm: string;
+}
+
 export class HyperliquidClient {
   private baseUrl: string;
   private f: typeof fetch;
@@ -62,6 +66,13 @@ export class HyperliquidClient {
 
   async meta(): Promise<{ universe: MetaUniverseItem[] }> {
     return this.post({ type: 'meta' });
+  }
+
+  async metaAndAssetCtxs(): Promise<{ universe: MetaUniverseItem[]; assetCtxs: { dayNtlVlm: number }[] }> {
+    const [meta, ctxs] = await this.post<[{ universe: MetaUniverseItem[] }, RawAssetCtx[]]>({
+      type: 'metaAndAssetCtxs',
+    });
+    return { universe: meta.universe, assetCtxs: ctxs.map((c) => ({ dayNtlVlm: +c.dayNtlVlm })) };
   }
 
   async candleSnapshot(coin: string, interval: string, startTime: number, endTime: number): Promise<Candle[]> {

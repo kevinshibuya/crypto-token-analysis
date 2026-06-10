@@ -22,11 +22,12 @@ export class MarketsService {
     const t = this.now();
     if (cached && t - cached.updatedAt < TTL_MS) return cached;
     await this.deps.rateLimiter.acquire(20);
-    const meta = await this.deps.client.meta();
-    const markets: MarketRow[] = meta.universe.map((u) => ({
+    const { universe, assetCtxs } = await this.deps.client.metaAndAssetCtxs();
+    const markets: MarketRow[] = universe.map((u, i) => ({
       name: u.name,
       szDecimals: u.szDecimals,
       maxLeverage: u.maxLeverage,
+      dayNtlVlm: assetCtxs[i]?.dayNtlVlm ?? 0,
     }));
     this.deps.store.set(markets, t);
     return { markets, updatedAt: t };

@@ -31,6 +31,21 @@ describe('HyperliquidClient', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(3); // initial + 2 retries
   });
 
+  it('metaAndAssetCtxs parses the [meta, ctxs] tuple and numifies dayNtlVlm', async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse([
+        { universe: [{ name: 'BTC', szDecimals: 5, maxLeverage: 50 }] },
+        [{ dayNtlVlm: '12345.6', funding: '0.0001' }],
+      ]),
+    );
+    const client = new HyperliquidClient({ baseUrl: 'http://x', fetchImpl: fetchImpl as unknown as typeof fetch });
+    const r = await client.metaAndAssetCtxs();
+    expect(r.universe[0].name).toBe('BTC');
+    expect(r.assetCtxs[0].dayNtlVlm).toBe(12345.6);
+    const init = fetchImpl.mock.calls[0][1] as RequestInit;
+    expect(JSON.parse(init.body as string)).toEqual({ type: 'metaAndAssetCtxs' });
+  });
+
   it('retries a transient 429 then succeeds', async () => {
     let calls = 0;
     const fetchImpl = vi.fn(async () => {

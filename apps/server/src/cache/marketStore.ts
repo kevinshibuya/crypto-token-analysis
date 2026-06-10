@@ -4,6 +4,7 @@ export interface MarketRow {
   name: string;
   szDecimals: number;
   maxLeverage: number;
+  dayNtlVlm: number; // 24h notional volume
 }
 
 export class MarketStore {
@@ -14,7 +15,10 @@ export class MarketStore {
       | { data: string; updatedAt: number }
       | undefined;
     if (!row) return null;
-    return { markets: JSON.parse(row.data) as MarketRow[], updatedAt: row.updatedAt };
+    return {
+      markets: (JSON.parse(row.data) as MarketRow[]).map((m) => ({ dayNtlVlm: 0, ...m })),
+      updatedAt: row.updatedAt,
+    };
   }
 
   set(markets: MarketRow[], updatedAt: number): void {
