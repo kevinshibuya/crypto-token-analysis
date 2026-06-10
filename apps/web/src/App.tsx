@@ -7,6 +7,7 @@ import type { View } from './components/Toolbar';
 import { IndicatorDrawer } from './components/IndicatorDrawer';
 import { Chart } from './components/Chart';
 import { buildMarkers, DEFAULT_FAMILIES, type FamilyToggles } from './signals';
+import { BacktestPanel } from './components/BacktestPanel';
 
 const DEFAULT_CONFIG: AnalysisConfig = {
   coin: 'BTC',
@@ -61,7 +62,7 @@ export function App() {
         <IndicatorDrawer config={config} onChange={setConfig} families={families} onFamilies={setFamilies} />
       </div>
       <div className={view === 'backtest' ? 'flex min-h-0 flex-1' : 'hidden'}>
-        <div className="p-4 text-sm text-slate-500">Backtest panel lands in Task 24.</div>
+        <BacktestPanel coin={config.coin} interval={config.interval} />
       </div>
     </div>
   );
