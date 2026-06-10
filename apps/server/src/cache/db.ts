@@ -17,6 +17,12 @@ export function openDb(path: string): DB {
     CREATE TABLE IF NOT EXISTS markets (
       name TEXT PRIMARY KEY, data TEXT NOT NULL, updatedAt INTEGER NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS backtest_results (
+      coin TEXT NOT NULL, interval TEXT NOT NULL,
+      configHash TEXT NOT NULL, lastCandleT INTEGER NOT NULL,
+      payload TEXT NOT NULL, createdAt INTEGER NOT NULL,
+      PRIMARY KEY (coin, interval, configHash, lastCandleT)
+    );
   `);
   return db;
 }
