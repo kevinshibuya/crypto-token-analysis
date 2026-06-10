@@ -2260,7 +2260,7 @@ brackets/ratchets/S-R signals shaped by structure that didn't exist yet. User de
 automatically enforces confirmation lag (a swing pivot needs `lookback` bars after it).
 `ctx.pivots` (full history) stays for chart display. `computeBracket` is unchanged.
 
-- [ ] **Step 1: Add the failing walk-forward tests**
+- [x] **Step 1: Add the failing walk-forward tests**
 
 Append to `packages/core/test/detectorContext.test.ts`:
 
@@ -2337,12 +2337,12 @@ Append to the `describe` in `packages/core/test/simulate.test.ts` (cfg for BOTH 
   });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/core test -- detectorContext srSignals simulate`
 Expected: FAIL — `pivotPricesAt` doesn't exist; simulate's new-signature calls don't compile/run.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `packages/core/src/detectorContext.ts` — add to the interface and builder:
 
@@ -2447,7 +2447,7 @@ export function ctxWith(
 Existing `simulate.test.ts` cases: mechanically wrap each static pivot array in a constant
 provider — `[95, 110]` → `() => [95, 110]` etc. The fixtures' arithmetic is unchanged.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/core test`
 Expected: all PASS. `scan.test.ts` asserts structure/determinism, not exact metric values, so it
@@ -2455,7 +2455,7 @@ should pass unchanged — if a scan assertion fails (e.g. no pair setups survive
 synthetic series), STOP and report; do not weaken assertions unilaterally. No index.ts change
 (`DetectorContext` is already exported as a type).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/detectorContext.ts packages/core/src/signals/srSignals.ts \
