@@ -3,6 +3,7 @@ import { getMarkets } from './api/client';
 import type { AnalysisConfig, Market } from './api/types';
 import { useAnalysis } from './state/useAnalysis';
 import { Toolbar } from './components/Toolbar';
+import type { View } from './components/Toolbar';
 import { IndicatorDrawer } from './components/IndicatorDrawer';
 import { Chart } from './components/Chart';
 
@@ -23,6 +24,7 @@ const DEFAULT_CONFIG: AnalysisConfig = {
 export function App() {
   const [markets, setMarkets] = useState<Market[]>([]);
   const [config, setConfig] = useState<AnalysisConfig>(DEFAULT_CONFIG);
+  const [view, setView] = useState<View>('chart');
   const { data, loading, error, reload } = useAnalysis(config);
 
   useEffect(() => {
@@ -44,14 +46,19 @@ export function App() {
         markets={markets}
         coin={config.coin}
         interval={config.interval}
+        view={view}
         onCoin={(coin) => setConfig((prev) => ({ ...prev, coin }))}
         onInterval={(interval) => setConfig((prev) => ({ ...prev, interval }))}
+        onView={setView}
         onRefresh={reload}
         status={status}
       />
-      <div className="flex min-h-0 flex-1">
+      <div className={view === 'chart' ? 'flex min-h-0 flex-1' : 'hidden'}>
         <Chart data={data} maColors={maColors} />
         <IndicatorDrawer config={config} onChange={setConfig} />
+      </div>
+      <div className={view === 'backtest' ? 'flex min-h-0 flex-1' : 'hidden'}>
+        <div className="p-4 text-sm text-slate-500">Backtest panel lands in Task 24.</div>
       </div>
     </div>
   );
