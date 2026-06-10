@@ -1,9 +1,8 @@
 import type { AnalysisResult, Interval, MaType } from '@cta/core';
 
 export type {
-  Candle, IndicatorPoint, MovingAverageResult, VolumeBar, VolumeResult, VolumeProfileRow, VolumeProfileResult, PivotType, PivotLevel, MaType,
+  Candle, IndicatorPoint, MovingAverageResult, VolumeBar, VolumeResult, VolumeProfileRow, VolumeProfileResult, PivotType, PivotLevel, MaType, Interval,
 } from '@cta/core';
-export type { Interval } from '@cta/core';
 
 export interface Market { name: string; szDecimals: number; maxLeverage: number; }
 export interface MarketsResponse { markets: Market[]; updatedAt: number; }

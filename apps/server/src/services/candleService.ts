@@ -37,13 +37,13 @@ export class CandleService {
     // return a truncated series.
     const missingTail = earliest === null || earliest > wantStart;
     if (missingHead || missingTail) {
-      await this.fetchAndStore(coin, interval, fetchStart, end);
+      await this.fetchAndStore(coin, interval as Interval, fetchStart, end);
     }
     return this.deps.store.get(coin, interval, wantStart, end);
   }
 
-  private async fetchAndStore(coin: string, interval: string, start: number, end: number): Promise<void> {
-    const step = INTERVAL_MS[interval as Interval];
+  private async fetchAndStore(coin: string, interval: Interval, start: number, end: number): Promise<void> {
+    const step = INTERVAL_MS[interval];
     const candles = await fetchCandles(
       async (s, e) => {
         const est = Math.min(MAX_CANDLES_PER_REQUEST, Math.ceil((e - s) / step) + 1);
