@@ -20,6 +20,7 @@ export interface ScanResult {
   lastCandleT: number;
 }
 
+/** Confluence pairing. Precondition: k1 !== k2 (same-kind input degenerates to all signals of that kind). */
 export function pairEntries(signals: Signal[], k1: SignalKind, k2: SignalKind, window: number): Signal[] {
   const a = signals.filter((s) => s.kind === k1);
   const b = signals.filter((s) => s.kind === k2);

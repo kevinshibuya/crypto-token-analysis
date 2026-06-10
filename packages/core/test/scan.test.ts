@@ -78,6 +78,15 @@ describe('runScan', () => {
   it('runSetup backtests one custom set', () => {
     const r = runSetup(candles, ctx, DEFAULT_BACKTEST_CONFIG, ['volume-spike-up']);
     expect(r.kinds).toEqual(['volume-spike-up']);
-    expect(r.metrics.trades + r.metrics.filtered).toBeGreaterThanOrEqual(0);
+    expect(r.metrics.trades + r.metrics.filtered).toBeGreaterThan(0);
+    expect(r.metrics.winRate).toBeGreaterThanOrEqual(0);
+    expect(r.metrics.winRate).toBeLessThanOrEqual(1);
+  });
+
+  it('excludes pairs with no activity', () => {
+    const scan = runScan(candles, ctx, DEFAULT_BACKTEST_CONFIG);
+    for (const r of scan.results.filter((x) => x.kinds.length === 2)) {
+      expect(r.metrics.trades + r.metrics.filtered).toBeGreaterThan(0);
+    }
   });
 });
