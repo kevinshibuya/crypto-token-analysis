@@ -73,7 +73,7 @@
 - Modify: `packages/core/src/index.ts`
 - Test: `packages/core/test/atr.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -108,12 +108,12 @@ describe('atr', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/core test -- atr`
 Expected: FAIL — cannot find module `../src/atr`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // packages/core/src/atr.ts
@@ -147,12 +147,12 @@ Add to `packages/core/src/index.ts`:
 export { atr } from './atr';
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/core test -- atr`
 Expected: PASS (3 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/atr.ts packages/core/src/index.ts packages/core/test/atr.test.ts
@@ -168,7 +168,7 @@ git commit -m "feat(core): Wilder ATR indicator"
 - Modify: `packages/core/src/index.ts`, `apps/server/src/config.ts`, `apps/server/src/hyperliquid/pagination.ts`, `apps/web/src/intervals.ts`, `apps/web/src/api/types.ts`, `apps/web/src/components/TimeframePills.tsx`, `apps/web/src/App.tsx`
 - Test: `packages/core/test/intervals.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -183,12 +183,12 @@ describe('SUPPORTED_INTERVALS', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/core test -- intervals`
 Expected: FAIL — cannot find module `../src/intervals`
 
-- [ ] **Step 3: Implement and rewire consumers**
+- [x] **Step 3: Implement and rewire consumers**
 
 ```ts
 // packages/core/src/intervals.ts
@@ -279,12 +279,12 @@ import type { Interval } from '../intervals';
 
 (`App.tsx` itself compiles unchanged: `'1h'` narrows to `Interval`, and `setConfig` accepts it because `AnalysisConfig.interval` is now `Interval`.)
 
-- [ ] **Step 4: Verify everything still compiles and passes**
+- [x] **Step 4: Verify everything still compiles and passes**
 
 Run: `pnpm --filter @cta/core test -- intervals && pnpm --filter @cta/server test && pnpm --filter @cta/web exec tsc --noEmit && pnpm --filter @cta/web test`
 Expected: all PASS, no tsc errors
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/intervals.ts packages/core/src/index.ts packages/core/test/intervals.test.ts apps/server/src/config.ts apps/server/src/hyperliquid/pagination.ts apps/web/src/intervals.ts apps/web/src/api/types.ts apps/web/src/components/TimeframePills.tsx apps/web/src/components/Toolbar.tsx
@@ -300,7 +300,7 @@ git commit -m "refactor: single SUPPORTED_INTERVALS source of truth in @cta/core
 - Create: `packages/core/src/detectorContext.ts`, `packages/core/src/patterns/helpers.ts`, `packages/core/test/fixtures.ts`
 - Test: `packages/core/test/detectorContext.test.ts`
 
-- [ ] **Step 1: Add signal types to `packages/core/src/types.ts`** (append at end of file)
+- [x] **Step 1: Add signal types to `packages/core/src/types.ts`** (append at end of file)
 
 ```ts
 export type SignalDirection = 'bullish' | 'bearish';
@@ -332,7 +332,7 @@ export interface Signal {
 }
 ```
 
-- [ ] **Step 2: Write the failing context test**
+- [x] **Step 2: Write the failing context test**
 
 ```ts
 // packages/core/test/detectorContext.test.ts
@@ -376,7 +376,7 @@ describe('buildDetectorContext', () => {
 
 Run: `pnpm --filter @cta/core test -- detectorContext` — Expected: FAIL (module missing)
 
-- [ ] **Step 3: Implement `packages/core/src/detectorContext.ts`**
+- [x] **Step 3: Implement `packages/core/src/detectorContext.ts`**
 
 ```ts
 import type { Candle, IndicatorPoint, MaType, PivotLevel, Signal } from './types';
@@ -448,7 +448,7 @@ export function buildDetectorContext(
 }
 ```
 
-- [ ] **Step 4: Implement `packages/core/src/patterns/helpers.ts`**
+- [x] **Step 4: Implement `packages/core/src/patterns/helpers.ts`**
 
 ```ts
 import type { Candle } from '../types';
@@ -468,7 +468,7 @@ export const isBear = (c: Candle): boolean => c.c < c.o;
 export const isLongBody = (c: Candle): boolean => range(c) > 0 && body(c) >= LONG_BODY_MIN_RATIO * range(c);
 ```
 
-- [ ] **Step 5: Create the shared test fixture helper `packages/core/test/fixtures.ts`**
+- [x] **Step 5: Create the shared test fixture helper `packages/core/test/fixtures.ts`**
 
 ```ts
 import type { Candle } from '../src/types';
@@ -491,7 +491,7 @@ export function ctxWith(
 }
 ```
 
-- [ ] **Step 6: Export from `packages/core/src/index.ts`** (append)
+- [x] **Step 6: Export from `packages/core/src/index.ts`** (append)
 
 ```ts
 export {
@@ -500,12 +500,12 @@ export {
 export type { DetectorContext, DetectorOptions, Detector, MaSpec } from './detectorContext';
 ```
 
-- [ ] **Step 7: Run tests**
+- [x] **Step 7: Run tests**
 
 Run: `pnpm --filter @cta/core test`
 Expected: all PASS (including the new detectorContext tests)
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add packages/core/src/types.ts packages/core/src/detectorContext.ts packages/core/src/patterns/helpers.ts packages/core/src/index.ts packages/core/test/fixtures.ts packages/core/test/detectorContext.test.ts
@@ -525,7 +525,7 @@ Definitions (geometry only — the backtest judges usefulness):
 - **hammer** (bullish) — not a doji, `body <= 0.35 * range`, `lowerWick >= 2 * body`, `upperWick <= body`.
 - **shooting-star** (bearish) — mirror: `upperWick >= 2 * body`, `lowerWick <= body`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -574,12 +574,12 @@ describe('detectShootingStar', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/core test -- singleCandle`
 Expected: FAIL (module missing)
 
-- [ ] **Step 3: Implement `packages/core/src/patterns/singleCandle.ts`**
+- [x] **Step 3: Implement `packages/core/src/patterns/singleCandle.ts`**
 
 ```ts
 import type { Candle, Signal } from '../types';
@@ -633,12 +633,12 @@ export function detectShootingStar(candles: Candle[], _ctx: DetectorContext): Si
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/core test -- singleCandle`
 Expected: PASS (6 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/patterns/singleCandle.ts packages/core/test/singleCandle.test.ts
@@ -659,7 +659,7 @@ Definitions:
 - **bullish-harami** — prev bear with long body, cur bull strictly inside prev body (`o > prev.c && c < prev.o`).
 - **bearish-harami** — prev bull with long body, cur bear strictly inside (`o < prev.c && c > prev.o`).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -709,12 +709,12 @@ describe('detectHarami', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/core test -- twoCandle`
 Expected: FAIL (module missing)
 
-- [ ] **Step 3: Implement `packages/core/src/patterns/twoCandle.ts`**
+- [x] **Step 3: Implement `packages/core/src/patterns/twoCandle.ts`**
 
 ```ts
 import type { Candle, Signal } from '../types';
@@ -751,12 +751,12 @@ export function detectHarami(candles: Candle[], _ctx: DetectorContext): Signal[]
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/core test -- twoCandle`
 Expected: PASS (6 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/patterns/twoCandle.ts packages/core/test/twoCandle.test.ts
@@ -777,7 +777,7 @@ Definitions (signal emitted at the third candle's index):
 - **three-white-soldiers** — three consecutive long-body bulls, each close > prev close, each open inside the prev body.
 - **three-black-crows** — mirror.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -849,12 +849,12 @@ describe('detectSoldiersCrows', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/core test -- threeCandle`
 Expected: FAIL (module missing)
 
-- [ ] **Step 3: Implement `packages/core/src/patterns/threeCandle.ts`**
+- [x] **Step 3: Implement `packages/core/src/patterns/threeCandle.ts`**
 
 ```ts
 import type { Candle, Signal } from '../types';
@@ -900,12 +900,12 @@ export function detectSoldiersCrows(candles: Candle[], _ctx: DetectorContext): S
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/core test -- threeCandle`
 Expected: PASS (6 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/patterns/threeCandle.ts packages/core/test/threeCandle.test.ts
@@ -925,7 +925,7 @@ Definitions:
 - **rsi-overbought-exit** (bearish) — `rsi[i-1] > overbought && rsi[i] <= overbought`.
 - **Divergence** — swing low at `j` when `l[j]` is strictly the lowest among `l[j-w .. j+w]` (w = `divergenceSwing`); confirmed (signal emitted) at `j + w`. For two consecutive swing lows `j1 < j2` no more than `divergenceLookback` bars apart: price lower low + RSI higher low → **rsi-bullish-divergence** at `j2 + w`. Swing highs mirror for **rsi-bearish-divergence**. `meta = { prevIndex: j1, curIndex: j2 }`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -967,12 +967,12 @@ describe('detectRsiDivergence', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/core test -- rsiSignals`
 Expected: FAIL (module missing)
 
-- [ ] **Step 3: Implement `packages/core/src/signals/rsiSignals.ts`**
+- [x] **Step 3: Implement `packages/core/src/signals/rsiSignals.ts`**
 
 ```ts
 import type { Candle, Signal } from '../types';
@@ -1046,12 +1046,12 @@ export function detectRsiDivergence(candles: Candle[], ctx: DetectorContext): Si
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/core test -- rsiSignals`
 Expected: PASS (4 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/signals/rsiSignals.ts packages/core/test/rsiSignals.test.ts
@@ -1066,7 +1066,7 @@ git commit -m "feat(core): RSI zone-exit and divergence detectors"
 - Create: `packages/core/src/signals/maSignals.ts`
 - Test: `packages/core/test/maSignals.test.ts`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -1104,12 +1104,12 @@ describe('detectPriceMaCross', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/core test -- maSignals`
 Expected: FAIL (module missing)
 
-- [ ] **Step 3: Implement `packages/core/src/signals/maSignals.ts`**
+- [x] **Step 3: Implement `packages/core/src/signals/maSignals.ts`**
 
 ```ts
 import type { Candle, Signal } from '../types';
@@ -1148,12 +1148,12 @@ export function detectPriceMaCross(candles: Candle[], ctx: DetectorContext): Sig
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/core test -- maSignals`
 Expected: PASS (3 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/signals/maSignals.ts packages/core/test/maSignals.test.ts
@@ -1176,7 +1176,7 @@ Definitions:
   - **sr-break-up** (bullish) — `prev.c <= P && c > P + tol`.
   - **sr-break-down** (bearish) — `prev.c >= P && c < P - tol`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 // packages/core/test/volumeSignals.test.ts
@@ -1247,12 +1247,12 @@ describe('detectSrSignals', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/core test -- volumeSignals srSignals`
 Expected: FAIL (modules missing)
 
-- [ ] **Step 3: Implement both detectors**
+- [x] **Step 3: Implement both detectors**
 
 ```ts
 // packages/core/src/signals/volumeSignals.ts
@@ -1309,12 +1309,12 @@ export function detectSrSignals(candles: Candle[], ctx: DetectorContext): Signal
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/core test -- volumeSignals srSignals`
 Expected: PASS (6 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/signals/volumeSignals.ts packages/core/src/signals/srSignals.ts packages/core/test/volumeSignals.test.ts packages/core/test/srSignals.test.ts
@@ -1330,7 +1330,7 @@ git commit -m "feat(core): volume-spike and S/R bounce/break detectors"
 - Modify: `packages/core/src/index.ts`
 - Test: `packages/core/test/detectors.test.ts`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -1390,12 +1390,12 @@ describe('detectAll', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/core test -- detectors`
 Expected: FAIL (module missing)
 
-- [ ] **Step 3: Implement `packages/core/src/detectors.ts`**
+- [x] **Step 3: Implement `packages/core/src/detectors.ts`**
 
 ```ts
 import type { Candle, Signal, SignalKind } from './types';
@@ -1468,12 +1468,12 @@ export { DETECTOR_REGISTRY, SIGNAL_KINDS, signalFamily, detectAll } from './dete
 export type { SignalFamily } from './detectors';
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/core test`
 Expected: all PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/detectors.ts packages/core/src/index.ts packages/core/test/detectors.test.ts
@@ -1490,7 +1490,7 @@ git commit -m "feat(core): detector registry, signal families, detectAll"
 
 Rules (long; short mirrors): stop sits `BRACKET_PAD_ATR` ATRs beyond the nearest pivot below entry; target sits AT the nearest pivot above. Both distances are clamped to `[atrFloorMult*atr, atrCapMult*atr]`. No pivot below → `stopDist = 1.5*atr`; no pivot above → `targetDist = 2*stopDist`. `rr = targetDist/stopDist`; below `minRR` → `null` (caller counts it as filtered).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -1543,12 +1543,12 @@ describe('computeBracket', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/core test -- bracket`
 Expected: FAIL (module missing)
 
-- [ ] **Step 3: Implement `packages/core/src/backtest/bracket.ts`**
+- [x] **Step 3: Implement `packages/core/src/backtest/bracket.ts`**
 
 ```ts
 import type { SignalDirection } from '../types';
@@ -1596,12 +1596,12 @@ export function computeBracket(
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/core test -- bracket`
 Expected: PASS (6 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/backtest/bracket.ts packages/core/test/bracket.test.ts
@@ -1623,7 +1623,7 @@ Semantics (all scenario-tested below):
 4. Still open at end of history → exit at the final close, reason `end-of-data`.
 5. `r` = signed profit measured in initial-risk units.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -1723,12 +1723,12 @@ describe('simulate', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/core test -- simulate`
 Expected: FAIL (module missing)
 
-- [ ] **Step 3: Implement `packages/core/src/backtest/simulate.ts`**
+- [x] **Step 3: Implement `packages/core/src/backtest/simulate.ts`**
 
 ```ts
 import type { Candle, Signal, SignalDirection } from '../types';
@@ -1821,12 +1821,12 @@ export function simulate(
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/core test -- simulate`
 Expected: PASS (10 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/backtest/simulate.ts packages/core/test/simulate.test.ts
@@ -1844,7 +1844,7 @@ git commit -m "feat(core): bracket trade simulation with breakeven, ratchet, opp
 
 Note: in R units, `expectancy` mathematically equals `avgR`; we compute it from the win/loss decomposition anyway and expose both fields because the UI shows both columns. `profitFactor` is `null` when there are wins but no losses ("infinite").
 
-- [ ] **Step 1: Write the failing metrics test**
+- [x] **Step 1: Write the failing metrics test**
 
 ```ts
 // packages/core/test/metrics.test.ts
@@ -1882,7 +1882,7 @@ describe('computeMetrics', () => {
 });
 ```
 
-- [ ] **Step 2: Write the failing scan test**
+- [x] **Step 2: Write the failing scan test**
 
 ```ts
 // packages/core/test/scan.test.ts
@@ -1971,12 +1971,12 @@ describe('runScan', () => {
 });
 ```
 
-- [ ] **Step 3: Run to verify failure**
+- [x] **Step 3: Run to verify failure**
 
 Run: `pnpm --filter @cta/core test -- metrics scan`
 Expected: FAIL (modules missing)
 
-- [ ] **Step 4: Implement metrics**
+- [x] **Step 4: Implement metrics**
 
 ```ts
 // packages/core/src/backtest/metrics.ts
@@ -2031,7 +2031,7 @@ export function computeMetrics(trades: TradeRecord[], filtered: number): SetupMe
 }
 ```
 
-- [ ] **Step 5: Implement scan**
+- [x] **Step 5: Implement scan**
 
 ```ts
 // packages/core/src/backtest/scan.ts
@@ -2129,12 +2129,12 @@ export { runScan, runSetup, pairEntries, DEFAULT_BACKTEST_CONFIG } from './backt
 export type { BacktestConfig, SetupResult, ScanResult } from './backtest/scan';
 ```
 
-- [ ] **Step 6: Run tests**
+- [x] **Step 6: Run tests**
 
 Run: `pnpm --filter @cta/core test`
 Expected: all PASS
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add packages/core/src/backtest/metrics.ts packages/core/src/backtest/scan.ts packages/core/src/index.ts packages/core/test/metrics.test.ts packages/core/test/scan.test.ts
@@ -2151,7 +2151,7 @@ git commit -m "feat(core): metrics, confluence pairing, singles+pairs scan"
 
 Today `touches` counts how many raw pivots merged into a level — two pivots from the *same* visit (a few bars apart) count twice. New rule: pivots whose indices are within `2 * lookback` bars belong to one visit; `touches` = number of visit clusters.
 
-- [ ] **Step 1: Add the failing tests** (append to `packages/core/test/pivots.test.ts`, using its existing candle factory — check the file and reuse its helper)
+- [x] **Step 1: Add the failing tests** (append to `packages/core/test/pivots.test.ts`, using its existing candle factory — check the file and reuse its helper)
 
 ```ts
 describe('touches as independent visits', () => {
@@ -2181,12 +2181,12 @@ describe('touches as independent visits', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify the new cases fail**
+- [x] **Step 2: Run to verify the new cases fail**
 
 Run: `pnpm --filter @cta/core test -- pivots`
 Expected: the two new tests FAIL (current code reports `touches: 2` for both — second case is the bug)
 
-- [ ] **Step 3: Fix `packages/core/src/pivots.ts`**
+- [x] **Step 3: Fix `packages/core/src/pivots.ts`**
 
 Change `Raw` to carry the candle index, accumulate indices through the merge, and derive touches from visit clusters:
 
@@ -2229,13 +2229,13 @@ interface Raw { price: number; strength: number; index: number }
   }));
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm --filter @cta/core test -- pivots`
 Expected: all PASS (old cases unaffected: their merged pivots are far apart or single)
 If a pre-existing assertion baked in the old merge-count semantics, update that assertion to the visit count and note it in the commit message.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/pivots.ts packages/core/test/pivots.test.ts
