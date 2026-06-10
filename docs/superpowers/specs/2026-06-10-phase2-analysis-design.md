@@ -23,6 +23,7 @@ Detect candlestick + indicator signals on Hyperliquid pairs and backtest them (s
 - [ ] A scan runs every single plus every same-direction pair (both signals within the confluence window, default 3 candles; entry after the later signal), with at most one open position per run, and returns results ranked by expectancy.
 - [ ] Each scan result reports trade count, win rate, avg R, profit factor, expectancy, max drawdown (in R), and filtered-trade count — aggregates only, no per-trade lists.
 - [ ] Identical candles + config produce identical scan output (determinism test).
+- [ ] No pivot lookahead anywhere in the backtest: S/R signal detection at bar i, the entry bracket, and the in-trade ratchet each use only pivot levels confirmed by that bar (a swing pivot is confirmed `lookback` bars after its extreme). Walk-forward levels come from a memoized per-index provider; full-history levels remain available for chart display.
 
 ### Server
 
@@ -65,6 +66,7 @@ Decisions made interactively during brainstorming (2026-06-10):
 | Polish items | All five folded in |
 | UI | Layout A — separate Backtest tab |
 | Architecture | Pure functions in `@cta/core` under subfolders (`patterns/`, `signals/`, `backtest/`) |
+| Pivot lookahead (2026-06-10 checkpoint, after T14) | **Walk-forward everywhere** — user chose "fix now" over "accept & document", scope "all three": S/R signal detection, entry brackets, and the in-trade ratchet all consume only pivots confirmed by the current bar. Full-history pivots stay in `ctx.pivots` for chart display. |
 
 ## Design
 

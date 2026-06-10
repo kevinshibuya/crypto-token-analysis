@@ -2244,6 +2244,229 @@ git commit -m "fix(core): PivotLevel.touches counts independent visits"
 
 ---
 
+### Task 14b: Walk-forward pivots (no lookahead) — added at the T14 checkpoint by user decision
+
+**Files:**
+- Modify: `packages/core/src/detectorContext.ts`, `packages/core/src/signals/srSignals.ts`,
+  `packages/core/src/backtest/simulate.ts`, `packages/core/src/backtest/scan.ts`,
+  `packages/core/test/fixtures.ts`
+- Test: `packages/core/test/detectorContext.test.ts`, `packages/core/test/srSignals.test.ts`,
+  `packages/core/test/simulate.test.ts` (adapt signature + add cases)
+
+Context: pivots were computed once over full history, so backtested trades early in the series got
+brackets/ratchets/S-R signals shaped by structure that didn't exist yet. User decision (checkpoint,
+2026-06-10): fix in all three consumers. Mechanism: `DetectorContext` gains a memoized
+`pivotPricesAt(i)` returning level prices computed from candles `0..i` only — the prefix slice
+automatically enforces confirmation lag (a swing pivot needs `lookback` bars after it).
+`ctx.pivots` (full history) stays for chart display. `computeBracket` is unchanged.
+
+- [ ] **Step 1: Add the failing walk-forward tests**
+
+Append to `packages/core/test/detectorContext.test.ts`:
+
+```ts
+describe('pivotPricesAt (walk-forward)', () => {
+  const flat = (t: number): Candle => ({ t, o: 10, h: 10.05, l: 9.95, c: 10, v: 1 });
+  const peak = (t: number, h: number): Candle => ({ t, o: 10, h, l: 9.95, c: 10, v: 1 });
+  // peak at index 3; with lookback 2 it is confirmed once index 5 exists
+  const candles = [flat(1), flat(2), flat(3), peak(4, 100), flat(5), flat(6), flat(7), flat(8)];
+  const opts = { ...DEFAULT_DETECTOR_OPTIONS, pivots: { lookback: 2, maxLevels: 3, mergeTolerance: 0.003 } };
+
+  it('excludes pivots not yet confirmed at index i', () => {
+    const ctx = buildDetectorContext(candles, opts);
+    expect(ctx.pivotPricesAt(4)).toEqual([]);
+    expect(ctx.pivotPricesAt(5)).toEqual([100]);
+  });
+
+  it('memoizes per index and clamps out-of-range indices', () => {
+    const ctx = buildDetectorContext(candles, opts);
+    expect(ctx.pivotPricesAt(5)).toBe(ctx.pivotPricesAt(5));
+    expect(ctx.pivotPricesAt(999)).toEqual(ctx.pivots.map((p) => p.price));
+  });
+});
+```
+
+Append to the `describe` in `packages/core/test/srSignals.test.ts`:
+
+```ts
+  it('ignores levels not yet known at the bar (walk-forward)', () => {
+    // same fixture as the support bounce, but the level only becomes known at i >= 2
+    const candles = [candle(1, 102, 103, 101.5, 102), candle(2, 102, 102.5, 100.2, 101)];
+    const ctx = ctxWith({ pivotPricesAt: (i) => (i >= 2 ? [100] : []), atr: [2, 2] });
+    expect(detectSrSignals(candles, ctx)).toEqual([]);
+  });
+```
+
+Append to the `describe` in `packages/core/test/simulate.test.ts` (cfg for BOTH new cases is
+`{ atrFloorMult: 1, atrCapMult: 3, minRR: 1.5, breakevenAtR: 1 }`, atr flat 1):
+
+```ts
+  it('builds the bracket from pivots known at the signal bar, not the entry bar', () => {
+    // Provider knows [100.5] only from i>=2. Signal at index 1 → bracket uses pivotPricesAt(1)=[]
+    // → ATR fallback: stop 98.5 (risk 1.5), target 103, rr 2 → trade taken.
+    // (Wrong impl querying the entry bar would see [100.5]: target floor-clamps to 101,
+    // rr 1/1.5 < 1.5 → filtered.)
+    const wfCfg = { atrFloorMult: 1, atrCapMult: 3, minRR: 1.5, breakevenAtR: 1 };
+    const quiet = (t: number) => candle(t, 100, 100.5, 99.5, 100);
+    const candles = [quiet(1), quiet(2), quiet(3), quiet(4), quiet(5)];
+    const out = simulate(candles, [sig(1)], [sig(1)], (i) => (i >= 2 ? [100.5] : []), Array(5).fill(1), wfCfg);
+    expect(out.filtered).toBe(0);
+    expect(out.trades).toHaveLength(1);
+    expect(out.trades[0].reason).toBe('end-of-data');
+    expect(out.trades[0].r).toBeCloseTo(0, 10);
+  });
+
+  it('ratchets off structure as it forms during the trade', () => {
+    // Entry at open of index 2 (100); bracket from pivotPricesAt(1)=[] → stop 98.5, target 103, risk 1.5.
+    // Pivot 101 becomes known at i>=4. At j=4 close 101.6 > 101 → stop ratchets to 100.9
+    // (101 − 0.1·atr); breakeven also arms (h 101.8 ≥ 101.5) but 100.9 > 100 wins.
+    // j=5 low 100.6 ≤ 100.9 → stop exit, r = 0.9/1.5 = 0.6.
+    const wfCfg = { atrFloorMult: 1, atrCapMult: 3, minRR: 1.5, breakevenAtR: 1 };
+    const candles = [
+      candle(1, 100, 100.5, 99.5, 100),
+      candle(2, 100, 100.5, 99.5, 100),
+      candle(3, 100, 100.5, 99.5, 100),
+      candle(4, 100, 100.8, 99.8, 100.5),
+      candle(5, 100.5, 101.8, 100.2, 101.6),
+      candle(6, 101, 101.2, 100.6, 100.8),
+    ];
+    const out = simulate(candles, [sig(1)], [sig(1)], (i) => (i >= 4 ? [101] : []), Array(6).fill(1), wfCfg);
+    expect(out.trades[0].reason).toBe('stop');
+    expect(out.trades[0].exitPrice).toBeCloseTo(100.9, 10);
+    expect(out.trades[0].r).toBeCloseTo(0.6, 10);
+  });
+```
+
+- [ ] **Step 2: Run to verify failure**
+
+Run: `pnpm --filter @cta/core test -- detectorContext srSignals simulate`
+Expected: FAIL — `pivotPricesAt` doesn't exist; simulate's new-signature calls don't compile/run.
+
+- [ ] **Step 3: Implement**
+
+`packages/core/src/detectorContext.ts` — add to the interface and builder:
+
+```ts
+export interface DetectorContext {
+  rsi: number[];       // all aligned to candles, NaN where undefined
+  maFast: number[];
+  maSlow: number[];
+  volumeSma: number[];
+  atr: number[];
+  pivots: PivotLevel[];                    // full-history levels (current state, chart display)
+  pivotPricesAt: (i: number) => number[];  // level prices knowable at the close of candle i (walk-forward)
+  opts: DetectorOptions;
+}
+```
+
+```ts
+export function buildDetectorContext(
+  candles: Candle[],
+  opts: DetectorOptions = DEFAULT_DETECTOR_OPTIONS,
+): DetectorContext {
+  const memo = new Map<number, number[]>();
+  const pivotPricesAt = (i: number): number[] => {
+    const key = Math.max(0, Math.min(i, candles.length - 1));
+    const hit = memo.get(key);
+    if (hit) return hit;
+    const prices = pivots(candles.slice(0, key + 1), opts.pivots).map((p) => p.price);
+    memo.set(key, prices);
+    return prices;
+  };
+  return {
+    rsi: alignToCandles(candles, rsi(candles, opts.rsiPeriod)),
+    maFast: alignToCandles(candles, maPoints(candles, opts.maFast)),
+    maSlow: alignToCandles(candles, maPoints(candles, opts.maSlow)),
+    volumeSma: alignToCandles(candles, volume(candles, opts.volumeSmaPeriod).sma),
+    atr: alignToCandles(candles, atr(candles, opts.atrPeriod)),
+    pivots: pivots(candles, opts.pivots),
+    pivotPricesAt,
+    opts,
+  };
+}
+```
+
+`packages/core/src/signals/srSignals.ts` — drop the top-level `levels` extraction; per bar:
+
+```ts
+export function detectSrSignals(candles: Candle[], ctx: DetectorContext): Signal[] {
+  const out: Signal[] = [];
+  for (let i = 1; i < candles.length; i++) {
+    const tol = ctx.opts.srTolAtrMult * ctx.atr[i];
+    if (!Number.isFinite(tol)) continue;
+    const levels = ctx.pivotPricesAt(i);
+    // ... rest of the loop body unchanged (prev/c/seen/push and the for (const P of levels) block)
+  }
+  return out;
+}
+```
+
+`packages/core/src/backtest/simulate.ts` — signature change only; both call sites move to the
+provider (bracket at the SIGNAL bar `e.index`, ratchet at the CLOSED bar `j`):
+
+```ts
+export function simulate(
+  candles: Candle[],
+  entries: Signal[],
+  setupSignals: Signal[],
+  pivotPricesAt: (i: number) => number[],
+  atrByIndex: number[],
+  cfg: SimConfig,
+): SimResult {
+```
+
+…`const bracket = computeBracket(entryPrice, e.direction, pivotPricesAt(e.index), atrVal, cfg);`
+and in the close-of-candle update block: `for (const P of pivotPricesAt(j)) {`. Everything else
+(breakeven, opposite-exit, conservative stop rule, exactly ONE computeBracket call site) unchanged.
+
+`packages/core/src/backtest/scan.ts` — in `setupFromSignals`, delete
+`const pivotPrices = ctx.pivots.map((p) => p.price);` and call
+`simulate(candles, entries, setupSignals, ctx.pivotPricesAt, ctx.atr, cfg)`.
+
+`packages/core/test/fixtures.ts` — keep `ctxWith` backward compatible: hand-built contexts default
+`pivotPricesAt` to a constant provider over the supplied `pivots`, so existing detector tests are
+untouched:
+
+```ts
+export function ctxWith(
+  partial: Partial<DetectorContext> = {},
+  opts: Partial<DetectorOptions> = {},
+): DetectorContext {
+  const base = {
+    rsi: [], maFast: [], maSlow: [], volumeSma: [], atr: [], pivots: [] as PivotLevel[],
+    ...partial,
+  };
+  return {
+    ...base,
+    pivotPricesAt: partial.pivotPricesAt ?? (() => base.pivots.map((p) => p.price)),
+    opts: { ...DEFAULT_DETECTOR_OPTIONS, ...opts },
+  };
+}
+```
+
+Existing `simulate.test.ts` cases: mechanically wrap each static pivot array in a constant
+provider — `[95, 110]` → `() => [95, 110]` etc. The fixtures' arithmetic is unchanged.
+
+- [ ] **Step 4: Run tests**
+
+Run: `pnpm --filter @cta/core test`
+Expected: all PASS. `scan.test.ts` asserts structure/determinism, not exact metric values, so it
+should pass unchanged — if a scan assertion fails (e.g. no pair setups survive walk-forward on the
+synthetic series), STOP and report; do not weaken assertions unilaterally. No index.ts change
+(`DetectorContext` is already exported as a type).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add packages/core/src/detectorContext.ts packages/core/src/signals/srSignals.ts \
+  packages/core/src/backtest/simulate.ts packages/core/src/backtest/scan.ts \
+  packages/core/test/fixtures.ts packages/core/test/detectorContext.test.ts \
+  packages/core/test/srSignals.test.ts packages/core/test/simulate.test.ts
+git commit -m "fix(core): walk-forward pivots — no lookahead in signals, brackets, or ratchet"
+```
+
+---
+
 ### Task 15: candleService `force` + tail-only backfill
 
 **Files:**
@@ -3966,7 +4189,7 @@ Per the spec: no per-trade payloads, no triple combos, no regime classification,
 
 ## Verification mapping (spec TODO → task)
 
-Every spec TODO is covered: ATR (T1), shared intervals (T2), candle patterns (T4–T6), RSI/MA/volume/SR detectors (T7–T9), registry (T10), bracket+filter (T11), management+conservative rule (T12), ATR-only fallback (T11/T12), scan+metrics+determinism (T13), touches (T14), force+tail backfill (T15), analysis signals+404 (T16), result cache (T17/T18), backtest route+validation (T18), rate limiter+timeout (T19), interval typing+favicon (T2/T20), tabs (T21), markers+toggles (T22), useBacktest (T23), backtest tab UI+pinning (T24), e2e (T25).
+Every spec TODO is covered: ATR (T1), shared intervals (T2), candle patterns (T4–T6), RSI/MA/volume/SR detectors (T7–T9), registry (T10), bracket+filter (T11), management+conservative rule (T12), ATR-only fallback (T11/T12), scan+metrics+determinism (T13), touches (T14), walk-forward pivots / no lookahead (T14b), force+tail backfill (T15), analysis signals+404 (T16), result cache (T17/T18), backtest route+validation (T18), rate limiter+timeout (T19), interval typing+favicon (T2/T20), tabs (T21), markers+toggles (T22), useBacktest (T23), backtest tab UI+pinning (T24), e2e (T25).
 
 
 
