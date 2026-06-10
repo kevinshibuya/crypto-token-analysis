@@ -22,6 +22,9 @@ apps/server/data/
 # Brainstorming / visual companion artifacts
 .superpowers/
 
+# E2E screenshots
+e2e/out/
+
 # Logs
 *.log
 npm-debug.log*

@@ -9,6 +9,7 @@
     "dev:web": "pnpm --filter @cta/web dev"
   },
   "devDependencies": {
+    "puppeteer-core": "^25.1.0",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0"
   },
