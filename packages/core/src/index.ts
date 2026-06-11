@@ -34,3 +34,5 @@ export {
 export type {
   SetupGate, ConfidenceWeights, ConfidenceBreakdown, TradePlan, DecideConfig, SignalsResult,
 } from './decide/types';
+export { analyzeCoin, defaultEngineAnalysisConfig } from './analyze';
+export type { EngineAnalysisConfig, AnalyzeResult } from './analyze';
