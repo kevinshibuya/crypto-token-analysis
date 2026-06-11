@@ -35,6 +35,7 @@ const backtestService = new BacktestService(candleService, new BacktestStore(db)
 const signalsService = new SignalsService(candleService, backtestService);
 
 let engineStatus: (() => HealthSnapshot) | undefined;
+let optimizeMa: ((coins?: string[]) => Promise<unknown>) | undefined;
 if (process.env.ENGINE_ENABLED === '1') {
   const engineLog = createEngineLogger(process.env.ENGINE_LOG_DIR ?? 'data/logs');
   const engineConfig = loadEngineConfig(process.env.ENGINE_CONFIG ?? 'engine.json');
@@ -58,9 +59,10 @@ if (process.env.ENGINE_ENABLED === '1') {
     .then(() => { watchdog.start(); engineLog.info('engine started'); })
     .catch((err) => { engineLog.fatal({ err: String(err) }, 'engine failed to start'); process.exit(1); });
   engineStatus = () => engine.status();
+  optimizeMa = (coins) => engine.runMaOptimization(coins);
 }
 
-const app = buildApp({ marketsService, analysisService, backtestService, signalsService, engineStatus });
+const app = buildApp({ marketsService, analysisService, backtestService, signalsService, engineStatus, optimizeMa });
 const port = Number(process.env.PORT ?? 3001);
 app
   .listen({ port, host: '0.0.0.0' })
