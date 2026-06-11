@@ -1,0 +1,176 @@
+# CTA Engine — macOS 24/7 Operations Runbook
+
+Tested on macOS 14+ (Sonoma / Sequoia). All commands run from the repo root unless noted.
+
+---
+
+## 1. Install the launchd service
+
+The plist uses a `__REPO_PATH__` placeholder so it can live in source control without secrets.
+
+```bash
+# Expand the placeholder with the absolute path to this repo, then install
+sed "s|__REPO_PATH__|$(pwd)|g" ops/com.cta.engine.plist \
+  > ~/Library/LaunchAgents/com.cta.engine.plist
+```
+
+Open the installed copy in your editor and fill in the secret strings (never commit them):
+
+```bash
+# Telegram sink — both must be non-empty to enable
+TELEGRAM_BOT_TOKEN=<your-bot-token>
+TELEGRAM_CHAT_ID=<your-chat-id>
+
+# Discord sink — must be non-empty to enable
+DISCORD_WEBHOOK_URL=<your-webhook-url>
+```
+
+Then lint the file to catch XML typos before load:
+
+```bash
+plutil -lint ~/Library/LaunchAgents/com.cta.engine.plist
+# Expected output: ~/Library/LaunchAgents/com.cta.engine.plist: OK
+```
+
+---
+
+## 2. Start / stop / restart
+
+**Start (bootstrap into the current login session):**
+
+```bash
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.cta.engine.plist
+```
+
+**Stop (bootout — also disables auto-start until next bootstrap):**
+
+```bash
+launchctl bootout gui/$(id -u)/com.cta.engine
+```
+
+**Restart:**
+
+```bash
+launchctl bootout gui/$(id -u)/com.cta.engine
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.cta.engine.plist
+```
+
+**Inspect service state:**
+
+```bash
+launchctl print gui/$(id -u)/com.cta.engine | head -30
+```
+
+---
+
+## 3. Sleep prevention
+
+The plist wraps the process in `caffeinate -s`, which blocks system sleep while the engine runs on AC power. For fully unattended operation also apply:
+
+```bash
+# Disable automatic sleep on AC; allow display to sleep after 10 min
+sudo pmset -c sleep 0 displaysleep 10
+```
+
+And in **System Settings → Battery → Power Adapter**, enable "Prevent automatic sleeping on power adapter when the display is off".
+
+> **Lid-closed operation** requires AC power to be connected. The `caffeinate -s` flag only prevents sleep when on AC; on battery the Mac may sleep regardless.
+
+---
+
+## 4. Crash recovery semantics
+
+`KeepAlive = true` in the plist means launchd restarts the process on any exit. The watchdog deliberately exits to trigger this recovery:
+
+- **Exit 1** — WebSocket dead beyond `wsDeadExitMs` (default 5 minutes), measured from the later of the last received WS message **or** the watchdog's own start time. The start-time baseline prevents spurious exits at cold boot before the first message arrives.
+- **Exit 2** — Event-loop stall detected via timer-skew signature.
+
+On restart the engine gap-fills its state from SQLite within seconds — no full historical backfill needed.
+
+---
+
+## 5. Health check
+
+**Route: `/api/health`** (not `/health` — that path is not registered).
+
+```bash
+# Replace 3001 with the value of PORT if you customise it
+curl -s localhost:3001/api/health | python3 -m json.tool
+```
+
+### Response fields
+
+| Field | Meaning |
+|-------|---------|
+| `status` | `"ok"` when engine is running |
+| `uptimeSec` | Seconds since the server process started |
+| `engine.wsConnected` | Whether the Hyperliquid WS is currently open |
+| `engine.lastTickAgeMs` | Milliseconds since the last price tick was processed |
+| `engine.queueDepth` | Coins waiting in the scan queue |
+| `engine.busyWorkers` | Analysis workers currently occupied |
+| `engine.coinsTracked` | Total coins being monitored |
+| `engine.coinsLive` | Coins with a live provisional signal |
+| `engine.scansCompleted` | Total analysis passes since boot |
+| `engine.latencies.p50` | Median scan latency (ms) |
+| `engine.latencies.p95` | 95th-percentile scan latency (ms) |
+| `engine.latencies.count` | Total latency samples recorded |
+
+### Logs
+
+Structured engine logs are written with `pino-roll` rotation to:
+
+```
+data/logs/engine.log        # current file
+data/logs/engine.log.*      # up to 4 rotated files (20 MB each, 5 files total)
+```
+
+launchd stdout/stderr (startup errors, `console.log`) go to:
+
+```
+data/logs/launchd.out.log
+data/logs/launchd.err.log
+```
+
+---
+
+## 6. Configuration
+
+Copy the example config and edit before first run:
+
+```bash
+cp engine.json.example engine.json
+# Edit engine.json, then restart to apply
+launchctl bootout gui/$(id -u)/com.cta.engine
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.cta.engine.plist
+```
+
+### Environment variable reference
+
+Only these variables are read by the engine at boot. All have defaults and are optional unless noted.
+
+| Variable | Default | Meaning |
+|----------|---------|---------|
+| `ENGINE_ENABLED` | _(unset = disabled)_ | Set to `1` to enable the engine; without this the server starts without scanning |
+| `ENGINE_LOG_DIR` | `data/logs` | Directory for engine log files |
+| `ENGINE_CONFIG` | `engine.json` | Path to the JSON config file |
+| `ENGINE_UNIVERSE_CAP` | `0` (all coins) | Maximum number of coins to track; `0` = no cap |
+| `ENGINE_WORKERS` | CPU count − 2 | Number of parallel analysis worker threads |
+| `ENGINE_TIMEFRAMES` | `15m,1h,4h,1d` | Comma-separated list of timeframes to analyse; must include `15m` |
+| `ENGINE_WEB_ORIGIN` | `http://localhost:5173` | Base URL for deep-links in alert notifications |
+| `ENGINE_MACOS_NOTIFY` | _(unset = disabled)_ | Set to `1` to enable macOS system notifications (no secret needed) |
+| `TELEGRAM_BOT_TOKEN` | _(empty = disabled)_ | Telegram bot token; both this and `TELEGRAM_CHAT_ID` must be non-empty |
+| `TELEGRAM_CHAT_ID` | _(empty = disabled)_ | Telegram chat or channel ID |
+| `DISCORD_WEBHOOK_URL` | _(empty = disabled)_ | Discord incoming webhook URL |
+| `PORT` | `3001` | HTTP port the Fastify server binds to |
+
+---
+
+## 7. VPS / Linux portability
+
+The engine has no macOS-only code paths — the macOS notifications sink (`MacosSink`) degrades gracefully when `osascript` is unavailable. To run on a Linux VPS:
+
+- Replace the plist with a **systemd unit**:
+  - `KeepAlive = true` → `Restart=always`
+  - `caffeinate -s` → remove (no equivalent needed; Linux servers don't sleep)
+- Set `ENGINE_MACOS_NOTIFY` to `0` or leave it unset (no effect on Linux either way)
+- Everything else — SQLite, pino logs, WS watchdog — works identically

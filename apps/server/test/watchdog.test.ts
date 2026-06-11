@@ -20,6 +20,21 @@ describe('Watchdog', () => {
     wd.stop();
   });
 
+  it('does not exit for a never-messaged WS until wsDeadExitMs has elapsed since start()', async () => {
+    let now = 1_000_000; // wall clock ≫ wsDeadExitMs, lastMessageAt still 0
+    const exits: number[] = [];
+    const wd = new Watchdog({
+      wsLastMessageAt: () => 0, wsDeadExitMs: 1_000, checkMs: 10,
+      stallToleranceMs: 60_000, log: nullLogger(), now: () => now, exit: (c) => { exits.push(c); },
+    });
+    wd.start();
+    now = 1_000_500; await wait(30); // 500ms since start — inside the grace
+    expect(exits).toEqual([]);
+    now = 1_001_500; await wait(30); // 1500ms since start — beyond wsDeadExitMs
+    expect(exits).toEqual([1]);
+    wd.stop();
+  });
+
   it('exits when the event loop stalls past tolerance (simulated via clock jump)', async () => {
     let now = 0;
     const exits: number[] = [];

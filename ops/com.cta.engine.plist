@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.cta.engine</string>
+  <key>WorkingDirectory</key><string>__REPO_PATH__</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/caffeinate</string>
+    <string>-s</string>
+    <string>/bin/zsh</string>
+    <string>-lc</string>
+    <string>exec pnpm --filter @cta/server start</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>ENGINE_ENABLED</key><string>1</string>
+    <!-- secrets: fill in or leave empty to disable a sink -->
+    <key>TELEGRAM_BOT_TOKEN</key><string></string>
+    <key>TELEGRAM_CHAT_ID</key><string></string>
+    <key>DISCORD_WEBHOOK_URL</key><string></string>
+    <key>ENGINE_MACOS_NOTIFY</key><string>1</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>__REPO_PATH__/data/logs/launchd.out.log</string>
+  <key>StandardErrorPath</key><string>__REPO_PATH__/data/logs/launchd.err.log</string>
+</dict>
+</plist>
