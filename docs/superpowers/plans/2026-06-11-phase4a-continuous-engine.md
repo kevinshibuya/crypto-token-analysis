@@ -340,6 +340,8 @@ describe('analyzeCoin', () => {
 });
 ```
 
+> **DEVIATION (Task 3, recorded during implementation):** `test/fixtures.ts` has no `trendingCandles` helper (only `candle()`/`ctxWith()`). The test defines local deterministic generators instead: `trendingCandles` (pure uptrend) and `upthendownCandles(500)` (up-then-down, forcing different MA cross sets for the override test). Kernel implementation matched the template exactly — `runScan` really returns `results/candleCount/lastCandleT` and `buildTradePlans` takes `DecideConfig`.
+
 Note for the implementer: if `out2.not.toEqual(out1)` is flaky because the fixture genuinely produces identical results under both MA configs, assert instead on the detector context boundary: export nothing new — change the test to compare `analyzeCoin` outputs on a fixture long enough that EMA50/SMA200 vs SMA9/SMA21 cross sets differ (e.g. a series with one trend reversal: concatenate an up-trend and a down-trend from the fixture helpers). Do not weaken the other two tests.
 
 - [ ] **Step 2: Run to verify failure**
