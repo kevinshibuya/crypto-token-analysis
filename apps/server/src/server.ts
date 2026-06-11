@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { buildApp } from './app';
 import { openDb } from './cache/db';
 import { CandleStore } from './cache/candleStore';
@@ -70,7 +71,8 @@ if (process.env.ENGINE_ENABLED === '1') {
   live = { feed, snapshot: () => ({ ...engine.liveSnapshot(), alerts: alertStore.recent(50) }) };
 }
 
-const app = buildApp({ marketsService, analysisService, backtestService, signalsService, engineStatus, optimizeMa, live });
+const webDistDir = fileURLToPath(new URL('../../web/dist', import.meta.url));
+const app = buildApp({ marketsService, analysisService, backtestService, signalsService, engineStatus, optimizeMa, live, webDistDir });
 const port = Number(process.env.PORT ?? 3001);
 app
   .listen({ port, host: '0.0.0.0' })

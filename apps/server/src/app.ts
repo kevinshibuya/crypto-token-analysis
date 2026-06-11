@@ -1,4 +1,7 @@
 import Fastify, { FastifyInstance } from 'fastify';
+import fastifyStatic from '@fastify/static';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { registerHealthRoute } from './routes/health';
 import { registerMarketsRoute } from './routes/markets';
 import { registerAnalysisRoute } from './routes/analysis';
@@ -20,6 +23,8 @@ export interface AppDeps {
   engineStatus: () => HealthSnapshot;
   optimizeMa?: (coins?: string[]) => Promise<unknown>;
   live?: LiveRouteDeps;
+  /** absolute path to the built web app; missing/empty → API-only with a warning */
+  webDistDir?: string;
 }
 
 export function buildApp(deps: Partial<AppDeps> & { routeTimeoutMs?: number } = {}): FastifyInstance {
@@ -33,5 +38,12 @@ export function buildApp(deps: Partial<AppDeps> & { routeTimeoutMs?: number } = 
   if (deps.signalsService) registerSignalsRoute(app, deps.signalsService, deps.routeTimeoutMs);
   if (deps.optimizeMa) registerOptimizeMaRoute(app, deps.optimizeMa);
   if (deps.live) registerLiveRoute(app, deps.live);
+  if (deps.webDistDir) {
+    if (existsSync(join(deps.webDistDir, 'index.html'))) {
+      void app.register(fastifyStatic, { root: deps.webDistDir });
+    } else {
+      console.warn(`web dist not found at ${deps.webDistDir} — serving API only (run: pnpm --filter @cta/web build)`);
+    }
+  }
   return app;
 }
