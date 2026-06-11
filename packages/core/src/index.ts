@@ -36,3 +36,10 @@ export type {
 } from './decide/types';
 export { analyzeCoin, defaultEngineAnalysisConfig } from './analyze';
 export type { EngineAnalysisConfig, AnalyzeResult } from './analyze';
+export {
+  buildMaGrid, evaluateMaSetups, optimizeMaForSeries, decideChallenger,
+  DEFAULT_MA_GRID_GATES, MA_FAST_PERIODS, MA_SLOW_PERIODS,
+} from './optimize/maGrid';
+export type {
+  MaCombo, MaGridGates, MaGridInput, SplitEvaluation, MaOptimizationResult,
+} from './optimize/maGrid';
