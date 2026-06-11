@@ -1,6 +1,6 @@
 // apps/server/src/engine/alertEngine.ts
 import type { Interval, TradePlan } from '@cta/core';
-import type { AlertKind, AlertStore } from '../cache/alertStore';
+import type { AlertKind, AlertRow, AlertStore } from '../cache/alertStore';
 import type { EngineLogger } from './logger';
 import type { DigestAlert, PlanAlert } from './types';
 
@@ -34,10 +34,12 @@ export interface AlertEngineOptions {
   digestFlushMs: number;
   webOrigin: string;
   now?: () => number;
+  /** observation hook fired for every persisted row (live feed) — NOT a delivery sink */
+  onRecord?: (row: AlertRow) => void;
 }
 
 export class AlertEngine {
-  private o: Required<Omit<AlertEngineOptions, 'now'>>;
+  private o: Required<Omit<AlertEngineOptions, 'now' | 'onRecord'>> & Pick<AlertEngineOptions, 'onRecord'>;
   private now: () => number;
   private fired: Map<string, number>;                       // `${identity}|${kind}` → ts (memory mirror of alert_dedupe)
   private pending = new Map<string, Map<string, PlanAlert>>(); // `${coin}|${interval}` → identity → provisional alert
@@ -128,13 +130,24 @@ export class AlertEngine {
     this.o.store.markFired(identity, kind, t);
   }
 
+  private persist(row: AlertRow): void {
+    this.o.store.insert(row);
+    this.o.onRecord?.(row);
+  }
+
+  /** Flush any pending digest before shutdown; safe to call twice. */
+  async stop(): Promise<void> {
+    if (this.digestTimer) { clearTimeout(this.digestTimer); this.digestTimer = null; }
+    await this.flushDigest();
+  }
+
   private async fire(alert: PlanAlert): Promise<void> {
     this.markFired(alert.identity, alert.kind);
     const t = this.now();
     this.dispatchTimes = this.dispatchTimes.filter((x) => t - x < this.o.burstWindowMs);
     if (this.dispatchTimes.length >= this.o.burstLimit) {
       this.digestBuffer.push(alert);
-      this.o.store.insert({ ts: t, kind: alert.kind, identity: alert.identity, coin: alert.coin, interval: alert.interval, payload: alert, delivered: ['digest'] });
+      this.persist({ ts: t, kind: alert.kind, identity: alert.identity, coin: alert.coin, interval: alert.interval, payload: alert, delivered: ['digest'] });
       if (!this.digestTimer) {
         this.digestTimer = setTimeout(() => { void this.flushDigest(); }, this.o.digestFlushMs);
         this.digestTimer.unref?.();
@@ -143,7 +156,7 @@ export class AlertEngine {
     }
     this.dispatchTimes.push(t);
     const delivered = await this.o.dispatch(formatAlertText(alert), alert);
-    this.o.store.insert({ ts: t, kind: alert.kind, identity: alert.identity, coin: alert.coin, interval: alert.interval, payload: alert, delivered });
+    this.persist({ ts: t, kind: alert.kind, identity: alert.identity, coin: alert.coin, interval: alert.interval, payload: alert, delivered });
   }
 
   private async flushDigest(): Promise<void> {
@@ -156,6 +169,6 @@ export class AlertEngine {
       top: [...buf].sort((a, b) => b.confidence - a.confidence).slice(0, 5),
     };
     const delivered = await this.o.dispatch(formatDigestText(digest), digest);
-    this.o.store.insert({ ts: digest.ts, kind: 'digest', identity: 'digest', coin: '*', interval: '*', payload: digest, delivered });
+    this.persist({ ts: digest.ts, kind: 'digest', identity: 'digest', coin: '*', interval: '*', payload: digest, delivered });
   }
 }

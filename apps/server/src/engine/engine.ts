@@ -1,3 +1,4 @@
+import { EventEmitter } from 'node:events';
 import { MIN_BACKTEST_CANDLES } from '../config';
 import { qualifySetups } from '@cta/core';
 import type { EngineAnalysisConfig, Interval, MaSpec } from '@cta/core';
@@ -21,6 +22,7 @@ import { LatencyTracker, type HealthSnapshot } from './metrics';
 import { ProvisionalEvaluator, makePlanAnalyzer } from './provisional';
 import type { AnalyzePlansFn } from './provisional';
 import { ScanQueue, TickGate } from './scheduler';
+import type { HealthEvent, LiveSnapshot, ScanEvent } from './types';
 import { HyperliquidWs } from './ws';
 import type { WsCandleEvent } from './ws';
 import { WorkerPool } from './workerPool';
@@ -81,6 +83,9 @@ export class Engine {
   private timers: ReturnType<typeof setInterval>[] = [];
   private prevProvisionalActive = new Set<string>();
 
+  readonly events = new EventEmitter();
+  private latestScans = new Map<string, ScanEvent>();
+
   constructor(private deps: EngineDeps) {
     this.cfg = deps.config;
     this.log = deps.log;
@@ -101,6 +106,7 @@ export class Engine {
       dedupeCooldownMs: this.cfg.dedupeCooldownMs,
       burstLimit: this.cfg.burstLimit, burstWindowMs: this.cfg.burstWindowMs, digestFlushMs: 5_000,
       webOrigin: this.cfg.webOrigin, now: this.now,
+      onRecord: (row) => this.events.emit('alert', row),
     });
     this.provisional = new ProvisionalEvaluator({
       aggregator: this.aggregator,
@@ -179,6 +185,9 @@ export class Engine {
     this.timers.push(setInterval(() => this.log.info({ latencies: this.metrics.snapshot(), ...this.counts() }, 'engine metrics'), 5 * 60_000));
     this.timers.push(setInterval(() => { void this.hourlyRefresh(); }, 3_600_000));
     this.timers.push(setInterval(() => { void this.backfill.retryDegraded(); }, 5 * 60_000));
+    this.timers.push(setInterval(() => {
+      this.events.emit('health', { ...this.status(), ts: this.now() } satisfies HealthEvent);
+    }, 2_000));
     for (const t of this.timers) t.unref?.();
     if (this.cfg.optimizer.enabled) this.maOptimizer.start();
   }
@@ -188,6 +197,7 @@ export class Engine {
     this.timers = [];
     this.maOptimizer.stop();
     this.ws.stop();
+    await this.alertEngine.stop();
     await this.pool.destroy();
   }
 
@@ -223,6 +233,13 @@ export class Engine {
       scansCompleted: this.scansCompleted,
       latencies: this.metrics.snapshot(),
     };
+  }
+
+  /** Live snapshot for a fresh dashboard connection; the route appends `alerts` from the AlertStore. */
+  liveSnapshot(): Omit<LiveSnapshot, 'alerts'> {
+    const scans = [...this.latestScans.values()]
+      .sort((a, b) => (b.plan?.confidence ?? -1) - (a.plan?.confidence ?? -1));
+    return { scans, health: { ...this.status(), ts: this.now() } };
   }
 
   get wsLastMessageAt(): number { return this.ws.lastMessageAt; }
@@ -280,6 +297,16 @@ export class Engine {
         .then(async (result) => {
           this.metrics.record('close-scan', this.now() - started);
           this.scansCompleted++;
+          const best = result.plans.find((p) => p.status === 'active') ?? null;
+          const scanEvent: ScanEvent = {
+            coin: job.coin, interval: job.interval, ts: this.now(), candleCount: result.candleCount,
+            plan: best && {
+              direction: best.direction, setup: best.setup, entry: best.entry,
+              stop: best.stop, target: best.target, rr: best.rr, confidence: best.confidence.score,
+            },
+          };
+          this.latestScans.set(`${job.coin}|${job.interval}`, scanEvent);
+          this.events.emit('scan', scanEvent);
           const qualified = qualifySetups(result.scanResults, this.cfg.analysis.gate);
           this.provisional.setQualified(job.coin, job.interval, qualified);
           await this.alertEngine.onCloseScan(job.coin, job.interval, result.plans);

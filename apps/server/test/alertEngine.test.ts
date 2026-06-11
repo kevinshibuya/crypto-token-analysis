@@ -142,6 +142,36 @@ describe('AlertEngine', () => {
     expect(store.recent(20).filter((r) => r.kind !== 'digest')).toHaveLength(5); // all persisted individually
     expect(store.recent(20).some((r) => r.kind === 'digest')).toBe(true);
   });
+
+  it('calls onRecord for every persisted row, including digest-buffered ones', async () => {
+    const records: { kind: string; identity: string }[] = [];
+    const { engine } = mk({
+      burstLimit: 1, digestFlushMs: 10,
+      onRecord: (row) => records.push({ kind: row.kind, identity: row.identity }),
+    });
+    // two confirmed-new alerts with distinct identities; the second overflows burstLimit 1 → digest buffer
+    await engine.onCloseScan('AAA', '1h', [plan({ confidence: { edge: 1, sample: 1, confluence: 1, bracket: 1, score: 70 } })]);
+    await engine.onCloseScan('BBB', '1h', [plan({ confidence: { edge: 1, sample: 1, confluence: 1, bracket: 1, score: 71 } })]);
+    // both rows persisted immediately (one delivered, one digest-routed) — onRecord fired for both
+    expect(records.filter((r) => r.kind === 'confirmed-new')).toHaveLength(2);
+    expect(records.some((r) => r.kind === 'digest')).toBe(false);
+    await new Promise((r) => setTimeout(r, 50)); // let the digest flush
+    expect(records.filter((r) => r.kind === 'digest')).toHaveLength(1);
+  });
+
+  it('stop() flushes a pending digest buffer instead of dropping it', async () => {
+    const { engine, sent, store } = mk({ burstLimit: 1, digestFlushMs: 60_000 }); // timer won't fire on its own
+    await engine.onCloseScan('AAA', '1h', [plan({ confidence: { edge: 1, sample: 1, confluence: 1, bracket: 1, score: 70 } })]);
+    await engine.onCloseScan('BBB', '1h', [plan({ confidence: { edge: 1, sample: 1, confluence: 1, bracket: 1, score: 71 } })]); // → buffer
+    expect(sent.filter((s) => (s.alert as DigestAlert).kind === 'digest')).toHaveLength(0);
+    await engine.stop();
+    const digests = sent.filter((s) => (s.alert as DigestAlert).kind === 'digest');
+    expect(digests).toHaveLength(1); // dispatched exactly once
+    expect((digests[0].alert as DigestAlert).count).toBe(1);
+    expect(store.recent(20).filter((r) => r.kind === 'digest')).toHaveLength(1); // persisted exactly once
+    await engine.stop(); // idempotent — no second flush, no throw
+    expect(sent.filter((s) => (s.alert as DigestAlert).kind === 'digest')).toHaveLength(1);
+  });
 });
 
 describe('planIdentity', () => {
