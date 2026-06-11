@@ -3250,6 +3250,13 @@ export class Watchdog {
 
 Run: `pnpm --filter @cta/server test -- run test/watchdog.test.ts` → PASS.
 
+> **DEVIATIONS (Task 15, recorded during implementation — all verified by reviewer):**
+> 1. **Watchdog is one-shot:** `check()` calls `this.stop()` before `this.exit(code)` in BOTH branches. The plan's code left the interval running after exit — with the test's injected fake `exit`, `exits` would accumulate `[1,1,…]` and the `toEqual([1])` assertion fails. Moot under real `process.exit`; required under test.
+> 2. **WS candle payload:** the real `WsCandleEvent` (`ws.ts`) is `{ coin, interval, candle }`, not the plan's `{ coin, candle }`; handler typed accordingly. `aggregator.onWsCandle(coin, candle)` is the real 2-arg signature — only 15m is ever subscribed and the aggregator rolls higher TFs up internally, so dropping `interval` is by design.
+> 3. Used the real exported `CloseEvent`/`CoinReadyEvent` types instead of the plan's inline literals (field-identical); the plan's now-unused `Candle`/`Interval` type imports dropped.
+> 4. **server.ts:** `candleStore` hoisted out of the inline `CandleService` construction and reused for the engine (same db, same behavior); `buildApp` already accepted `engineStatus` since Task 12. Step 7's smoke check uses `/api/health` → `{"status":"ok",…}` per the Task 12 deviation.
+> 5. ⚠ **FOLLOW-UP REQUIRED in Task 17 (reviewer finding, downgraded from IMPORTANT):** cold-boot watchdog race — `ws.lastMsgAt` is `0` until the socket opens, and the watchdog starts as soon as `engine.start()` resolves (before WS open). First check (~10s later) computes `now − 0 ≫ wsDeadExitMs` (default 300 000) → spurious `exit(1)` whenever no WS message lands within ~10s of boot. launchd KeepAlive masks it (restart churn during partial outages instead of the intended 5-min grace); Task 18's live e2e has a small flake risk. **Fix to land in Task 17:** baseline the dead check at watchdog start — keep `startAt = this.now()` in `start()` and check against `Math.max(this.o.wsLastMessageAt(), startAt)` — plus a unit test (watchdog with `wsLastMessageAt: () => 0` and recent `start()` must NOT exit 1 before `wsDeadExitMs` has elapsed since start).
+
 - [ ] **Step 3: Write the failing engine tests**
 
 These use manual fakes for WS/pool/services and drive the engine through its public seams. The point is the *wiring*: closes persist + enqueue + scan + alert; mids reach the evaluator; gap-fill fires on reconnect; universe refresh diffs subscriptions.
