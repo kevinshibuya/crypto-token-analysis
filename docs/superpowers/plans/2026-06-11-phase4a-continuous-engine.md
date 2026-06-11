@@ -2734,6 +2734,8 @@ export function buildApp(deps: Partial<AppDeps> & { routeTimeoutMs?: number; eng
 }
 ```
 
+> **DEVIATION (Task 12, recorded during implementation — verified by reviewer against `git show d1aac7e:apps/server/src/routes/health.ts`):** the real pre-existing route is **`GET /api/health`** returning **`{ status: 'ok', uptimeSec }`** — there is no `/health` route and no `{ ok: true }` shape. The engine block was made additive on the real route: with a provider, the response is `{ status: 'ok', uptimeSec, engine }`; without, byte-identical to before. The two new tests assert `status === 'ok'` at `/api/health` (plan's `ok: true` literals dropped). ⚠ **Later tasks reference the plan's wrong path/shape and MUST adapt: Task 15's verification snippet (`url: '/health'`), Task 17's ops docs (`curl localhost:3001/health`), Task 18's e2e (`fetch(BASE + '/health')`) — all should use `/api/health` and `status: 'ok'`.**
+
 - [ ] **Step 5: Run tests**
 
 Run: `pnpm --filter @cta/server test -- run test/metrics.test.ts test/health.test.ts` → PASS, then `pnpm -r test` → green.
