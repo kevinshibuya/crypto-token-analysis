@@ -1220,6 +1220,10 @@ git add apps/server/src/engine/maOptimizer.ts apps/server/test/maOptimizer.test.
 git commit -m "feat(engine): nightly MA optimizer with scan-yielding and auditable persistence"
 ```
 
+**Task 5 deviations (recorded during execution, commit `2dfe5ac`):**
+- The test's `log: nullLogger` is a plan typo — `nullLogger` is a factory in `logger.ts`; implemented as `log: nullLogger()` (same adaptation as Task 3).
+- Reviewer-flagged PLAN BUG (minor): `schedule()`'s `void this.run().finally(...)` surfaces an unhandled rejection if a synchronous dep (`liveCoins`/`series`/`scanBacklog`) throws. Fix folded into Task 6: add `.catch((err) => this.deps.log.warn({ err: (err as Error).message }, 'ma-optimizer nightly run crashed'))` before the `.finally` in `maOptimizer.ts`'s `schedule()`.
+
 ---
 
 ### Task 6: Engine — MA overrides on scan + tick paths, optimizer wiring
