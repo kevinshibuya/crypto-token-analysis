@@ -42,3 +42,21 @@ describe('loadEngineConfig', () => {
       .toThrow(/15m/);
   });
 });
+
+describe('optimizer config', () => {
+  it('defaults to enabled with spec gates', () => {
+    const cfg = loadEngineConfig('/nonexistent/engine.json', {});
+    expect(cfg.optimizer).toEqual({
+      enabled: true, minTrainTrades: 20, minValidationTrades: 8, validationFraction: 0.3,
+    });
+  });
+
+  it('deep-merges optimizer overrides from engine.json', () => {
+    const path = join(tmpdir(), `engine-opt-${Date.now()}.json`);
+    writeFileSync(path, JSON.stringify({ optimizer: { enabled: false, minTrainTrades: 5 } }));
+    const cfg = loadEngineConfig(path, {});
+    expect(cfg.optimizer.enabled).toBe(false);
+    expect(cfg.optimizer.minTrainTrades).toBe(5);
+    expect(cfg.optimizer.minValidationTrades).toBe(8); // untouched default survives
+  });
+});

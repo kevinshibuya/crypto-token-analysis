@@ -26,6 +26,12 @@ export interface EngineConfig {
     confluenceWindow: number; minRR: number; volumeSpikeK: number;
     gate: SetupGate; weights: ConfidenceWeights; window: number;
   };
+  optimizer: {
+    enabled: boolean;            // gates the nightly 00:10 UTC schedule only (manual trigger always works)
+    minTrainTrades: number;
+    minValidationTrades: number;
+    validationFraction: number;
+  };
 }
 
 export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
@@ -53,6 +59,7 @@ export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
     weights: { ...DEFAULT_WEIGHTS },
     window: DEFAULT_WINDOW,
   },
+  optimizer: { enabled: true, minTrainTrades: 20, minValidationTrades: 8, validationFraction: 0.3 },
 };
 
 type Env = Record<string, string | undefined>;

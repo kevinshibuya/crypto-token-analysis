@@ -4,6 +4,8 @@
   "confirmedMinConfidence": 65,
   "provisionalMinConfidence": 75,
   "sinks": { "telegram": true, "discord": true, "macos": true },
+  "webOrigin": "http://localhost:3001",
+  "optimizer": { "enabled": true, "minTrainTrades": 20, "minValidationTrades": 8, "validationFraction": 0.3 },
   "analysis": {
     "confluenceWindow": 3, "minRR": 1.5, "volumeSpikeK": 2,
     "gate": { "minTrades": 20, "minExpectancy": 0.1, "topN": 10 },
