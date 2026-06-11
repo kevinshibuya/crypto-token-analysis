@@ -5,6 +5,7 @@ import { registerAnalysisRoute } from './routes/analysis';
 import { registerBacktestRoute } from './routes/backtest';
 import { registerSignalsRoute } from './routes/signals';
 import { registerOptimizeMaRoute } from './routes/optimizeMa';
+import { registerLiveRoute, type LiveRouteDeps } from './routes/live';
 import type { MarketsService } from './services/marketsService';
 import type { AnalysisService } from './services/analysisService';
 import type { BacktestService } from './services/backtestService';
@@ -18,6 +19,7 @@ export interface AppDeps {
   signalsService: SignalsService;
   engineStatus: () => HealthSnapshot;
   optimizeMa?: (coins?: string[]) => Promise<unknown>;
+  live?: LiveRouteDeps;
 }
 
 export function buildApp(deps: Partial<AppDeps> & { routeTimeoutMs?: number } = {}): FastifyInstance {
@@ -30,5 +32,6 @@ export function buildApp(deps: Partial<AppDeps> & { routeTimeoutMs?: number } = 
   if (deps.backtestService) registerBacktestRoute(app, deps.backtestService, deps.routeTimeoutMs);
   if (deps.signalsService) registerSignalsRoute(app, deps.signalsService, deps.routeTimeoutMs);
   if (deps.optimizeMa) registerOptimizeMaRoute(app, deps.optimizeMa);
+  if (deps.live) registerLiveRoute(app, deps.live);
   return app;
 }

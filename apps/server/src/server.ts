@@ -15,6 +15,7 @@ import { SignalsService } from './services/signalsService';
 import { CACHE_DB_PATH, HYPERLIQUID_BASE_URL, RATE_LIMIT_CAPACITY, RATE_LIMIT_REFILL_PER_SEC } from './config';
 import { Engine } from './engine/engine';
 import { Watchdog } from './engine/watchdog';
+import { LiveFeed } from './engine/liveFeed';
 import { loadEngineConfig } from './engine/config';
 import { createEngineLogger } from './engine/logger';
 import { SinkDispatcher } from './engine/sinks/dispatcher';
@@ -36,6 +37,7 @@ const signalsService = new SignalsService(candleService, backtestService);
 
 let engineStatus: (() => HealthSnapshot) | undefined;
 let optimizeMa: ((coins?: string[]) => Promise<unknown>) | undefined;
+let live: { feed: LiveFeed; snapshot: () => unknown } | undefined;
 if (process.env.ENGINE_ENABLED === '1') {
   const engineLog = createEngineLogger(process.env.ENGINE_LOG_DIR ?? 'data/logs');
   const engineConfig = loadEngineConfig(process.env.ENGINE_CONFIG ?? 'engine.json');
@@ -60,9 +62,15 @@ if (process.env.ENGINE_ENABLED === '1') {
     .catch((err) => { engineLog.fatal({ err: String(err) }, 'engine failed to start'); process.exit(1); });
   engineStatus = () => engine.status();
   optimizeMa = (coins) => engine.runMaOptimization(coins);
+
+  const feed = new LiveFeed({ log: engineLog });
+  engine.events.on('scan', (e) => feed.broadcast('scan', e));
+  engine.events.on('alert', (r) => feed.broadcast('alert', r));
+  engine.events.on('health', (h) => feed.broadcast('health', h));
+  live = { feed, snapshot: () => ({ ...engine.liveSnapshot(), alerts: alertStore.recent(50) }) };
 }
 
-const app = buildApp({ marketsService, analysisService, backtestService, signalsService, engineStatus, optimizeMa });
+const app = buildApp({ marketsService, analysisService, backtestService, signalsService, engineStatus, optimizeMa, live });
 const port = Number(process.env.PORT ?? 3001);
 app
   .listen({ port, host: '0.0.0.0' })
