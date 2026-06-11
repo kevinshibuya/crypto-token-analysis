@@ -3833,6 +3833,12 @@ describe('engine integration over fake HL WS', () => {
 });
 ```
 
+> **DEVIATIONS (Task 16, recorded during implementation — all verified by reviewer; engine.ts change is exactly the one seam):**
+> 1. T10/T14 errata literals applied: `kinds`/`setup: ['rsi-oversold-exit']`, `direction: 'bullish'`.
+> 2. Gate-passing metrics: full 10-field `SetupMetrics` (trades 30, expectancy 0.4, …) — `qualifySetups` filters ONLY on `trades ≥ minTrades && expectancy ≥ minExpectancy` (`DEFAULT_GATE = { minTrades: 20, minExpectancy: 0.1, topN: 10 }`), so the fixture qualifies.
+> 3. Timing hardening: `const firstConn = fake.nextConnection()` registered BEFORE `engine.start()` and awaited before `sendCandle`/`sendMids` — the first `until` (backfill→scan path) can win the WS handshake race, and `fakeHlWs`'s `last()?.send` silently no-ops with zero sockets. Waiters only resolve on FUTURE connections, hence register-before-start. Same pattern as Task 5's tests. No assertions weakened.
+> 4. Plan's WS option names and alert-text assertions held as written (verified, no change). Flake audit: `recent()` orders `ts DESC, id DESC` so the kinds assertion is deterministic even same-ms; bucket-boundary straddle is benign (closeDue needs forming.t + 15min + 600s grace). 7 consecutive green runs across implementer+reviewer.
+
 - [ ] **Step 3: Run to verify failure, then green**
 
 Run: `pnpm --filter @cta/server test -- run test/engineIntegration.test.ts`
