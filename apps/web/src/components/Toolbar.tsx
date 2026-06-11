@@ -1,3 +1,4 @@
+import type React from 'react';
 import type { Market } from '../api/types';
 import type { Interval } from '../intervals';
 import { MarketPicker } from './MarketPicker';
@@ -15,6 +16,7 @@ export function Toolbar(props: {
   onView: (v: View) => void;
   onRefresh: () => void;
   status: string;
+  healthChip?: React.ReactNode;
 }) {
   const tab = (v: View, label: string) => (
     <button
@@ -37,7 +39,10 @@ export function Toolbar(props: {
       >
         ↻ Refresh
       </button>
-      <span className="ml-auto text-xs text-slate-500">{props.status}</span>
+      <span className="ml-auto flex items-center gap-3">
+        {props.healthChip}
+        <span className="text-xs text-slate-500">{props.status}</span>
+      </span>
     </div>
   );
 }
