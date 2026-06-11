@@ -3,34 +3,10 @@ import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../src/app';
 import { LiveFeed } from '../src/engine/liveFeed';
 import { nullLogger } from '../src/engine/logger';
+import { readEvents } from './helpers/sse';
 
 let app: FastifyInstance | null = null;
 afterEach(async () => { if (app) { await app.close(); app = null; } });
-
-/** Read SSE frames from a fetch body until `count` event frames arrived (or timeout). */
-async function readEvents(body: ReadableStream<Uint8Array>, count: number, timeoutMs = 5_000):
-  Promise<{ event: string; data: unknown }[]> {
-  const reader = body.getReader();
-  const decoder = new TextDecoder();
-  const events: { event: string; data: unknown }[] = [];
-  let buf = '';
-  const deadline = Date.now() + timeoutMs;
-  while (events.length < count && Date.now() < deadline) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buf += decoder.decode(value, { stream: true });
-    let idx;
-    while ((idx = buf.indexOf('\n\n')) >= 0) {
-      const block = buf.slice(0, idx);
-      buf = buf.slice(idx + 2);
-      const ev = /^event: (.+)$/m.exec(block)?.[1];
-      const data = /^data: (.+)$/m.exec(block)?.[1];
-      if (ev && data) events.push({ event: ev, data: JSON.parse(data) });
-    }
-  }
-  await reader.cancel().catch(() => {});
-  return events;
-}
 
 describe('GET /live', () => {
   it('replays the snapshot first, then streams broadcast events, to multiple clients', async () => {
