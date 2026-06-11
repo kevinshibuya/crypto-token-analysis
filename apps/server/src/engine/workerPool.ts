@@ -1,19 +1,34 @@
 import { Worker } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
-import type { AnalyzeResult, Candle, EngineAnalysisConfig } from '@cta/core';
+import type {
+  AnalyzeResult, BacktestConfig, Candle, DetectorOptions, EngineAnalysisConfig,
+  MaGridGates, MaOptimizationResult,
+} from '@cta/core';
 import type { EngineLogger } from './logger';
 import type { WorkerJob } from './worker';
 
-export interface PoolJob {
+export interface AnalyzePoolJob {
+  kind?: 'analyze';
   candles: Candle[];
   config: EngineAnalysisConfig;
   poison?: boolean; // test hook
 }
 
+export interface OptimizeMaPoolJob {
+  kind: 'optimize-ma';
+  candles: Candle[];
+  detector: DetectorOptions;
+  backtest: BacktestConfig;
+  gates: MaGridGates;
+}
+
+export type PoolJob = AnalyzePoolJob | OptimizeMaPoolJob;
+type PoolResult = AnalyzeResult | MaOptimizationResult;
+
 interface Pending {
   job: PoolJob;
   retried: boolean;
-  resolve: (r: AnalyzeResult) => void;
+  resolve: (r: PoolResult) => void;
   reject: (e: Error) => void;
 }
 
@@ -41,9 +56,11 @@ export class WorkerPool {
   get queueDepth(): number { return this.queue.length; }
   get busyCount(): number { return this.slots.filter((s) => s.busy).length; }
 
-  run(job: PoolJob): Promise<AnalyzeResult> {
+  run(job: AnalyzePoolJob): Promise<AnalyzeResult>;
+  run(job: OptimizeMaPoolJob): Promise<MaOptimizationResult>;
+  run(job: PoolJob): Promise<PoolResult> {
     if (this.destroyed) return Promise.reject(new Error('pool destroyed'));
-    return new Promise<AnalyzeResult>((resolve, reject) => {
+    return new Promise<PoolResult>((resolve, reject) => {
       this.queue.push({ job, retried: false, resolve, reject });
       this.pump();
     });
@@ -66,7 +83,7 @@ export class WorkerPool {
       execArgv: ['--import', 'tsx'],
     });
     const slot: Slot = { worker, busy: null };
-    worker.on('message', (msg: { id: number; result: AnalyzeResult }) => {
+    worker.on('message', (msg: { id: number; result: PoolResult }) => {
       const pending = slot.busy;
       slot.busy = null;
       pending?.resolve(msg.result);
@@ -104,9 +121,7 @@ export class WorkerPool {
       if (slot.busy || this.queue.length === 0) continue;
       const pending = this.queue.shift()!;
       slot.busy = pending;
-      const payload: WorkerJob = {
-        id: this.nextId++, candles: pending.job.candles, config: pending.job.config, poison: pending.job.poison,
-      };
+      const payload = { id: this.nextId++, ...pending.job } as WorkerJob;
       slot.worker.postMessage(payload);
     }
   }
