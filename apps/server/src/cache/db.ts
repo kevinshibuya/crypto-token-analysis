@@ -34,6 +34,17 @@ export function openDb(path: string): DB {
       identity TEXT NOT NULL, kind TEXT NOT NULL, lastFiredAt INTEGER NOT NULL,
       PRIMARY KEY (identity, kind)
     );
+    CREATE TABLE IF NOT EXISTS ma_selection (
+      coin TEXT NOT NULL, interval TEXT NOT NULL,
+      fastType TEXT NOT NULL, fastPeriod INTEGER NOT NULL,
+      slowType TEXT NOT NULL, slowPeriod INTEGER NOT NULL,
+      setupKinds TEXT NOT NULL,
+      train TEXT NOT NULL, validation TEXT NOT NULL,
+      baselineSetupKinds TEXT, baselineTrain TEXT, baselineValidation TEXT,
+      candleCount INTEGER NOT NULL, splitIndex INTEGER NOT NULL,
+      selectedAt INTEGER NOT NULL,
+      PRIMARY KEY (coin, interval)
+    );
   `);
   return db;
 }
