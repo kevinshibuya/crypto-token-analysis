@@ -156,7 +156,7 @@ Only these variables are read by the engine at boot. All have defaults and are o
 | `ENGINE_UNIVERSE_CAP` | `0` (all coins) | Maximum number of coins to track; `0` = no cap |
 | `ENGINE_WORKERS` | CPU count − 2 | Number of parallel analysis worker threads |
 | `ENGINE_TIMEFRAMES` | `15m,1h,4h,1d` | Comma-separated list of timeframes to analyse; must include `15m` |
-| `ENGINE_WEB_ORIGIN` | `http://localhost:3001` | Base URL for deep-links in alert notifications; should point at the server origin (3001), not the vite dev server (5173) |
+| `ENGINE_WEB_ORIGIN` | `http://localhost:5173` (set to `http://localhost:3001` for production) | Base URL for deep-links in alert notifications; should point at the server origin (3001), not the vite dev server (5173). `engine.json.example` already sets `webOrigin` to 3001 |
 | `ENGINE_MACOS_NOTIFY` | _(unset = disabled)_ | Set to `1` to enable macOS system notifications (no secret needed) |
 | `TELEGRAM_BOT_TOKEN` | _(empty = disabled)_ | Telegram bot token; both this and `TELEGRAM_CHAT_ID` must be non-empty |
 | `TELEGRAM_CHAT_ID` | _(empty = disabled)_ | Telegram chat or channel ID |
