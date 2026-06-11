@@ -1550,6 +1550,10 @@ export class WorkerPool {
 }
 ```
 
+> **DEVIATIONS (Task 7, recorded during implementation — both verified by reviewer with /tmp spikes):**
+> 1. **The `execArgv: ['--import','tsx']` premise was wrong.** tsx 4.22's `--import` entry gates ESM hook registration on `isMainThread` for Node < 24.11.1, so worker threads get NO resolution hooks in ANY parent configuration (parent tsx hooks do not propagate into workers either). Fix: `worker.ts` self-registers via `import { register } from 'tsx/esm/api'; register();` then dynamically imports `@cta/core` (its static import is type-only, so nothing resolves before register). `execArgv` kept as planned (inert on Node 22, forward-compatible ≥24.11.1).
+> 2. **Template `destroy()` left in-flight pendings unresolved forever** (caller hangs at shutdown — Task 15 would hit it). Fixed: destroy synchronously rejects each slot's busy pending before terminating (no double-settle: busy nulled first; exit handler gated on destroyed). A 4th test covers this; it times out against the unfixed template.
+
 - [ ] **Step 5: Run tests**
 
 Run: `pnpm --filter @cta/server test -- run test/workerPool.test.ts` → PASS.
