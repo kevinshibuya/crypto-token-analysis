@@ -2,6 +2,7 @@ export const HYPERLIQUID_BASE_URL = process.env.HL_BASE_URL ?? 'https://api.hype
 export const RATE_LIMIT_CAPACITY = 1200; // IP weight budget per minute
 export const RATE_LIMIT_REFILL_PER_SEC = 1200 / 60;
 export const MAX_CANDLES_PER_REQUEST = 5000;
+export const CANDLE_SNAPSHOT_BASE_WEIGHT = 20; // HL docs: candleSnapshot weighs 20 + 1 per 60 candles returned
 export const DEFAULT_LOOKBACK = 1000;
 export const CACHE_DB_PATH = process.env.CACHE_DB_PATH ?? 'data/cache.sqlite';
 

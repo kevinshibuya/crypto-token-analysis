@@ -4,6 +4,8 @@ import { CandleStore } from '../src/cache/candleStore';
 import { openDb } from '../src/cache/db';
 import { INTERVAL_MS } from '../src/hyperliquid/pagination';
 import type { Candle } from '@cta/core';
+import type { RateLimiter } from '../src/hyperliquid/rateLimiter';
+import type { HyperliquidClient } from '../src/hyperliquid/client';
 
 const noopLimiter = { acquire: async () => {}, available: 0 } as any;
 
@@ -121,5 +123,23 @@ describe('CandleService', () => {
     const big = await svc.getCandles('BTC', '1h', 50);
     expect(client.candleSnapshot).toHaveBeenCalled(); // must refetch to backfill 50..89
     expect(big).toHaveLength(51); // [50*step .. 100*step] inclusive
+  });
+
+  it('acquires 20 base + 1-per-60-candles weight for snapshot requests', async () => {
+    const weights: number[] = [];
+    const rateLimiter = { acquire: async (w: number) => { weights.push(w); } } as unknown as RateLimiter;
+    const client = {
+      candleSnapshot: async (_c: string, _i: string, s: number, e: number) => {
+        const step = 3_600_000;
+        const out: Candle[] = [];
+        for (let t = s; t <= e; t += step) out.push({ t, o: 1, h: 1, l: 1, c: 1, v: 1 });
+        return out;
+      },
+    } as unknown as HyperliquidClient;
+    const db = openDb(':memory:');
+    const svc = new CandleService({ client, store: new CandleStore(db), rateLimiter, now: () => 3_600_000 * 1000 });
+    await svc.getCandles('BTC', '1h', 600);
+    // est = ceil((e-s)/step)+1 = 600+1 = 601; weight = 20 base + ceil(601/60) = 20 + 11 = 31
+    expect(weights).toEqual([31]);
   });
 });

@@ -1,6 +1,6 @@
 import type { Candle, Interval } from '@cta/core';
 import { fetchCandles, INTERVAL_MS } from '../hyperliquid/pagination';
-import { MAX_CANDLES_PER_REQUEST } from '../config';
+import { MAX_CANDLES_PER_REQUEST, CANDLE_SNAPSHOT_BASE_WEIGHT } from '../config';
 import type { CandleStore } from '../cache/candleStore';
 import type { HyperliquidClient } from '../hyperliquid/client';
 import type { RateLimiter } from '../hyperliquid/rateLimiter';
@@ -52,7 +52,7 @@ export class CandleService {
     const candles = await fetchCandles(
       async (s, e) => {
         const est = Math.min(MAX_CANDLES_PER_REQUEST, Math.ceil((e - s) / step) + 1);
-        await this.deps.rateLimiter.acquire(Math.max(1, Math.ceil(est / 60)));
+        await this.deps.rateLimiter.acquire(CANDLE_SNAPSHOT_BASE_WEIGHT + Math.max(1, Math.ceil(est / 60)));
         return this.deps.client.candleSnapshot(coin, interval, s, e);
       },
       interval,
