@@ -3035,6 +3035,8 @@ describe('ProvisionalEvaluator', () => {
 });
 ```
 
+> **DEVIATIONS (Task 14, recorded during implementation — verified by reviewer; implementation file matches the plan, only test fixtures changed):** the Task 10 errata apply here too — fixture uses `direction: 'bullish'`, `kinds`/`setup: ['rsi-oversold-exit']`, and the full 10-field `SetupMetrics` shape (dropping both the `as SetupResult['metrics']` and `as TradePlan` casts). `SetupResult` is `{ kinds, metrics }` as the plan assumed (`packages/core/src/backtest/scan.ts`). **`makePlanAnalyzer` needed NO adaptation:** `EngineAnalysisConfig` really is exported from `@cta/core` (`packages/core/src/analyze.ts`, re-exported in index), and the kernel composes exactly the plan's pipeline with the identical config spread — the plan's import and signatures were correct as written.
+
 - [ ] **Step 2: Run to verify failure**
 
 Run: `pnpm --filter @cta/server test -- run test/provisional.test.ts`
