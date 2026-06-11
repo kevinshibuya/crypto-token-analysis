@@ -1031,6 +1031,8 @@ export class HyperliquidWs extends EventEmitter {
 }
 ```
 
+> **DEVIATION (Task 5, recorded during implementation):** in the silence-reconnect test, `nextConnection()` resolves on the SERVER's connection event before the client processes the 101 handshake, so the bare `expect(ws.connected).toBe(true)` was deterministically flaky. Fixed with `await new Promise<void>((r) => ws.once('open', () => r()))` before the assertion (deterministic event wait, assertion unchanged). Also dropped the unused `vi` import. Client code itself transcribed verbatim — reviewer audited all supersede/silence/stop races and found no bugs.
+
 - [ ] **Step 6: Run tests**
 
 Run: `pnpm --filter @cta/server test -- run test/engineWs.test.ts` → PASS (these use real short timers; if a test is flaky on timing, widen `flush()` waits, never the assertions), then `pnpm -r test` → green.
