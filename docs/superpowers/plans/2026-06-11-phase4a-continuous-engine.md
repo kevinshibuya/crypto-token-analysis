@@ -3859,6 +3859,11 @@ git commit -m "test(engine): fake-WS integration — provisional lifecycle, pers
 
 No code. The deliverables are a lint-clean plist and a runbook another machine could follow.
 
+> **DEVIATIONS (Task 17, recorded during implementation — verified by reviewer):**
+> 1. **Watchdog cold-boot fix landed here** (the follow-up mandated in the Task 15 deviation block): `Watchdog.start()` records `startAt`; the WS-dead check baselines `lastSeen = Math.max(wsLastMessageAt(), startAt)`; third watchdog test covers the never-messaged-WS grace. Pre-existing tests semantically unchanged; stall branch unaffected.
+> 2. Ops docs use the real `/api/health` route and port 3001 (per Task 12 deviation) and document the REAL env-var set (ENGINE_ENABLED, ENGINE_CONFIG, ENGINE_LOG_DIR, ENGINE_UNIVERSE_CAP, ENGINE_WORKERS, ENGINE_TIMEFRAMES, ENGINE_WEB_ORIGIN, ENGINE_MACOS_NOTIFY, PORT, sink secrets) — the plan's list was missing PORT; config-file-only params are explicitly not claimed as env vars.
+> 3. Commit message extended accordingly: `docs(ops): launchd service + 24/7 Mac runbook; fix watchdog cold-boot baseline`.
+
 **Files:**
 - Create: `ops/com.cta.engine.plist`
 - Create: `docs/ops-mac.md`
