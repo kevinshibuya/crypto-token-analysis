@@ -16,6 +16,7 @@ import type { EngineConfig } from './config';
 import type { EngineLogger } from './logger';
 import { LatencyTracker, type HealthSnapshot } from './metrics';
 import { ProvisionalEvaluator, makePlanAnalyzer } from './provisional';
+import type { AnalyzePlansFn } from './provisional';
 import { ScanQueue, TickGate } from './scheduler';
 import { HyperliquidWs } from './ws';
 import type { WsCandleEvent } from './ws';
@@ -33,6 +34,8 @@ export interface EngineDeps {
   dispatch: (text: string, alert: PlanAlert | DigestAlert) => Promise<string[]>;
   ws?: HyperliquidWs;       // injectable for tests
   pool?: WorkerPool;        // injectable for tests
+  /** test seam: overrides the tick-path analyzer (default: makePlanAnalyzer(analysisConfig)) */
+  provisionalAnalyze?: AnalyzePlansFn;
   now?: () => number;
 }
 
@@ -96,7 +99,7 @@ export class Engine {
       tickGate: new TickGate({ minMovePct: this.cfg.tickMinMovePct, minIntervalMs: this.cfg.tickMinIntervalMs, now: this.now }),
       timeframes: this.cfg.timeframes, minCandles: MIN_BACKTEST_CANDLES,
       metrics: this.metrics, log: this.log, now: this.now,
-      analyze: makePlanAnalyzer(this.analysisConfig),
+      analyze: deps.provisionalAnalyze ?? makePlanAnalyzer(this.analysisConfig),
       alert: async (coin, interval, plans) => {
         const t0 = this.now();
         await this.alertEngine.onProvisionalPlans(coin, interval, plans);
