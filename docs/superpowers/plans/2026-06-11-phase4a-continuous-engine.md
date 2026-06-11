@@ -127,6 +127,8 @@ it('acquires 20 base + 1-per-60-candles weight for snapshot requests', async () 
 });
 ```
 
+> **DEVIATION (Task 1, recorded during implementation):** the test asserts `[31]`, not `[30]`. The real `est` formula counts candles inclusively: `ceil((e−s)/step)+1 = 601` for a 600-candle 1h request, so weight = 20 + ceil(601/60) = 31. The plan comment's `ceil(600/60)` shorthand missed the `+1`. Implementation formula is exactly as specified; only the expected literal changed.
+
 - [ ] **Step 2: Run it to verify it fails**
 
 Run: `pnpm --filter @cta/server test -- run test/candleService.test.ts`
