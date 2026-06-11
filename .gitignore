@@ -19,6 +19,9 @@ apps/server/data/
 .env.*
 !.env.example
 
+# Local engine config (the real file is local config; commit engine.json.example instead)
+engine.json
+
 # Brainstorming / visual companion artifacts
 .superpowers/
 

@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "@cta/core": "workspace:*",
+    "better-sqlite3": "^11.1.2",
     "fastify": "^4.28.0",
-    "better-sqlite3": "^11.1.2"
+    "pino": "^10.3.1",
+    "pino-roll": "^4.0.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.11",

@@ -1,0 +1,13 @@
+{
+  "universeCap": 0,
+  "timeframes": ["15m", "1h", "4h", "1d"],
+  "confirmedMinConfidence": 65,
+  "provisionalMinConfidence": 75,
+  "sinks": { "telegram": true, "discord": true, "macos": true },
+  "analysis": {
+    "confluenceWindow": 3, "minRR": 1.5, "volumeSpikeK": 2,
+    "gate": { "minTrades": 20, "minExpectancy": 0.1, "topN": 10 },
+    "weights": { "edge": 0.4, "sample": 0.2, "confluence": 0.2, "bracket": 0.2 },
+    "window": 3
+  }
+}
