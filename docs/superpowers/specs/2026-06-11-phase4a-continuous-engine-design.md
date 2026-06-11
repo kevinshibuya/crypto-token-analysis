@@ -4,25 +4,25 @@ A 24/7 engine inside the server process that ingests Hyperliquid data by WebSock
 
 ## TODO
 
-- [ ] Engine boots with no manual trigger, backfills missing candles via REST (rate-limited), and begins analyzing coins in 24h-volume order; coins become live one by one rather than after a global barrier
-- [ ] `candleSnapshot` requests acquire rate-limiter weight matching HL docs: 20 base + 1 per 60 candles returned (today's `CandleService` counts only the per-60 part)
-- [ ] Engine maintains live 15m candles via one WS connection (`candle@15m` per coin + `allMids`) and locally aggregates exact UTC-aligned 1h/4h/1d candles from them
-- [ ] Forming candles update from `allMids` mid-price ticks between candle messages
-- [ ] WS silence >30s (config) triggers reconnect with exponential backoff, resubscribe, and REST gap-fill; the candle store afterwards has no gaps or duplicates
-- [ ] All engine analysis flows through a single pure `analyzeCoin(candles, config) → { scanResults, plans }` entry point in `@cta/core` (the Rust-portable kernel boundary)
-- [ ] A candle close enqueues exactly one scan job per affected coin×timeframe into the worker pool; duplicate pending jobs coalesce; jobs run in volume-rank priority with provisional-active coins jumping the queue
-- [ ] Tick-triggered provisional evaluation runs on the main thread only for coins whose mid moved >0.05% since last check, at most once per second per coin (both config), covering all four timeframes' forming candles per eligible coin
-- [ ] A provisional plan with confidence ≥75 (config) fires a ⚠ provisional alert; at candle close it is followed by exactly one ✓ confirmed or ✗ withdrawn follow-up (✓ requires the same identity active at close with confidence ≥ the confirmed bar; ✗ notes when the setup survived but scored under it); a provisional→confirmed plan never additionally fires `confirmed-new`
-- [ ] A confirmed plan with confidence ≥65 (config) fires a confirmed alert with coin, timeframe, direction, setup kinds, entry/stop/target, R/R, confidence, and a chart deep link carrying `?coin=&interval=` params (the web app honors them in Phase 4B)
-- [ ] An alert identity `(coin, timeframe, direction, kinds, entry rounded to 0.1%)` never fires twice while its plan is alive, and not again within a 6h cooldown after expiry; dedupe state survives restart (SQLite)
-- [ ] More than 10 alerts queued within 60s collapse into a single digest message per sink
-- [ ] Each sink (Telegram, Discord webhook, macOS notification) delivers independently with 3 retried attempts and backoff; a failing sink never blocks the engine or other sinks
-- [ ] Every alert (including digests, confirmations, withdrawals) is persisted to a SQLite `alerts` table and survives restart
-- [ ] Latency metrics (tick→provisional, close→scan per coin, close→universe complete) are recorded as p50/p95, logged every 5 min, and exposed on `/health`
-- [ ] An in-process watchdog exits the process if the WS stays dead >5 min or the event loop stalls; a documented launchd setup (plist + caffeinate) restarts it and the engine resumes warm (gap-fill + full scan cycle) with no manual steps
-- [ ] Engine activity and health transitions write structured logs to `data/logs/` with size-capped rotation
-- [ ] Integration test: a fake Hyperliquid WS replaying a scripted message sequence drives the full engine and produces exactly the expected alerts and SSE-ready events, including a provisional→withdrawn case and a reconnect gap-fill
-- [ ] `node e2e/phase4a.mjs` passes against live Hyperliquid on a reduced universe: ticks flow, scans complete within budget, the alert pipeline produces persisted alert rows (sinks mocked/log-only), and a warm restart resumes without manual steps
+- [x] Engine boots with no manual trigger, backfills missing candles via REST (rate-limited), and begins analyzing coins in 24h-volume order; coins become live one by one rather than after a global barrier
+- [x] `candleSnapshot` requests acquire rate-limiter weight matching HL docs: 20 base + 1 per 60 candles returned (today's `CandleService` counts only the per-60 part)
+- [x] Engine maintains live 15m candles via one WS connection (`candle@15m` per coin + `allMids`) and locally aggregates exact UTC-aligned 1h/4h/1d candles from them
+- [x] Forming candles update from `allMids` mid-price ticks between candle messages
+- [x] WS silence >30s (config) triggers reconnect with exponential backoff, resubscribe, and REST gap-fill; the candle store afterwards has no gaps or duplicates
+- [x] All engine analysis flows through a single pure `analyzeCoin(candles, config) → { scanResults, plans }` entry point in `@cta/core` (the Rust-portable kernel boundary)
+- [x] A candle close enqueues exactly one scan job per affected coin×timeframe into the worker pool; duplicate pending jobs coalesce; jobs run in volume-rank priority with provisional-active coins jumping the queue
+- [x] Tick-triggered provisional evaluation runs on the main thread only for coins whose mid moved >0.05% since last check, at most once per second per coin (both config), covering all four timeframes' forming candles per eligible coin
+- [x] A provisional plan with confidence ≥75 (config) fires a ⚠ provisional alert; at candle close it is followed by exactly one ✓ confirmed or ✗ withdrawn follow-up (✓ requires the same identity active at close with confidence ≥ the confirmed bar; ✗ notes when the setup survived but scored under it); a provisional→confirmed plan never additionally fires `confirmed-new`
+- [x] A confirmed plan with confidence ≥65 (config) fires a confirmed alert with coin, timeframe, direction, setup kinds, entry/stop/target, R/R, confidence, and a chart deep link carrying `?coin=&interval=` params (the web app honors them in Phase 4B)
+- [x] An alert identity `(coin, timeframe, direction, kinds, entry rounded to 0.1%)` never fires twice while its plan is alive, and not again within a 6h cooldown after expiry; dedupe state survives restart (SQLite)
+- [x] More than 10 alerts queued within 60s collapse into a single digest message per sink
+- [x] Each sink (Telegram, Discord webhook, macOS notification) delivers independently with 3 retried attempts and backoff; a failing sink never blocks the engine or other sinks
+- [x] Every alert (including digests, confirmations, withdrawals) is persisted to a SQLite `alerts` table and survives restart
+- [x] Latency metrics (tick→provisional, close→scan per coin, close→universe complete) are recorded as p50/p95, logged every 5 min, and exposed on `/health`
+- [x] An in-process watchdog exits the process if the WS stays dead >5 min or the event loop stalls; a documented launchd setup (plist + caffeinate) restarts it and the engine resumes warm (gap-fill + full scan cycle) with no manual steps
+- [x] Engine activity and health transitions write structured logs to `data/logs/` with size-capped rotation
+- [x] Integration test: a fake Hyperliquid WS replaying a scripted message sequence drives the full engine and produces exactly the expected alerts and SSE-ready events, including a provisional→withdrawn case and a reconnect gap-fill
+- [x] `node e2e/phase4a.mjs` passes against live Hyperliquid on a reduced universe: ticks flow, scans complete within budget, the alert pipeline produces persisted alert rows (sinks mocked/log-only), and a warm restart resumes without manual steps
 
 ## Context
 
