@@ -23,6 +23,17 @@ export function openDb(path: string): DB {
       payload TEXT NOT NULL, createdAt INTEGER NOT NULL,
       PRIMARY KEY (coin, interval, configHash, lastCandleT)
     );
+    CREATE TABLE IF NOT EXISTS alerts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ts INTEGER NOT NULL, kind TEXT NOT NULL, identity TEXT NOT NULL,
+      coin TEXT NOT NULL, interval TEXT NOT NULL,
+      payload TEXT NOT NULL, delivered TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS alerts_ts ON alerts (ts DESC);
+    CREATE TABLE IF NOT EXISTS alert_dedupe (
+      identity TEXT NOT NULL, kind TEXT NOT NULL, lastFiredAt INTEGER NOT NULL,
+      PRIMARY KEY (identity, kind)
+    );
   `);
   return db;
 }
