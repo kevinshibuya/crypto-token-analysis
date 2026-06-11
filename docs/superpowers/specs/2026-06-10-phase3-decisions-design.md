@@ -6,31 +6,31 @@ Turn backtest-validated setups into live trade plans (entry, stop, target, R/R) 
 
 ### Core — decide module
 
-- [ ] `qualifySetups(results, gate)` keeps only setups with `trades >= minTrades` and `expectancy >= minExpectancy` (boundary values 20 trades / 0.10R qualify with defaults), preserves scan-rank order, and caps at `topN`.
-- [ ] `buildTradePlans` emits at most one plan per qualified setup — the most recent triggering occurrence within the freshness window (default 3 closed candles); pair setups reuse the existing confluence pairing at the live edge; setups with no occurrence in the window emit nothing.
-- [ ] Each plan's bracket is computed at the latest close via the Phase 2 `computeBracket` with walk-forward pivots and ATR at the latest bar; plans whose recomputed R/R clears `minRR` are `active`, others `expired`.
-- [ ] Confidence breakdown matches the spec formulas: edge `clamp(expectancy/0.5, 0, 1)`, sample `trades/(trades+30)`, confluence `min(agreeing/3, 1)` where `agreeing` counts OTHER qualified setups with an active same-direction plan, bracket `clamp(rr/3, 0, 1)`; `score = 100 × Σ(wᵢcᵢ)/Σwᵢ`.
-- [ ] Identical candles + config produce identical plans and scores (determinism), and scaling all four weights by the same constant leaves scores unchanged (normalization).
+- [x] `qualifySetups(results, gate)` keeps only setups with `trades >= minTrades` and `expectancy >= minExpectancy` (boundary values 20 trades / 0.10R qualify with defaults), preserves scan-rank order, and caps at `topN`.
+- [x] `buildTradePlans` emits at most one plan per qualified setup — the most recent triggering occurrence within the freshness window (default 3 closed candles); pair setups reuse the existing confluence pairing at the live edge; setups with no occurrence in the window emit nothing.
+- [x] Each plan's bracket is computed at the latest close via the Phase 2 `computeBracket` with walk-forward pivots and ATR at the latest bar; plans whose recomputed R/R clears `minRR` are `active`, others `expired`.
+- [x] Confidence breakdown matches the spec formulas: edge `clamp(expectancy/0.5, 0, 1)`, sample `trades/(trades+30)`, confluence `min(agreeing/3, 1)` where `agreeing` counts OTHER qualified setups with an active same-direction plan, bracket `clamp(rr/3, 0, 1)`; `score = 100 × Σ(wᵢcᵢ)/Σwᵢ`.
+- [x] Identical candles + config produce identical plans and scores (determinism), and scaling all four weights by the same constant leaves scores unchanged (normalization).
 
 ### Server
 
-- [ ] `POST /api/signals` returns `{ coin, interval, plans, qualifiedCount, candleCount, lastCandleT }` for a coin/interval, honoring `gate`, `weights`, and `window` overrides in `config`.
-- [ ] Signals validation mirrors backtest: unknown coin → 404, fewer than 50 candles → 422, malformed config → 400; the route-level timeout applies.
-- [ ] Changing `gate`/`weights`/`window` does not invalidate the cached backtest scan: a second `/api/signals` request differing only in those fields is served from the existing scan cache (no recomputation).
-- [ ] `/api/signals` with `force: true` refetches candles inside the staleness window (same semantics as `/api/analysis`).
-- [ ] The markets response includes `dayNtlVlm` (24h notional volume) per coin, sourced from `metaAndAssetCtxs`, cached with the existing 1h TTL.
+- [x] `POST /api/signals` returns `{ coin, interval, plans, qualifiedCount, candleCount, lastCandleT }` for a coin/interval, honoring `gate`, `weights`, and `window` overrides in `config`.
+- [x] Signals validation mirrors backtest: unknown coin → 404, fewer than 50 candles → 422, malformed config → 400; the route-level timeout applies.
+- [x] Changing `gate`/`weights`/`window` does not invalidate the cached backtest scan: a second `/api/signals` request differing only in those fields is served from the existing scan cache (no recomputation).
+- [x] `/api/signals` with `force: true` refetches candles inside the staleness window (same semantics as `/api/analysis`).
+- [x] The markets response includes `dayNtlVlm` (24h notional volume) per coin, sourced from `metaAndAssetCtxs`, cached with the existing 1h TTL.
 
 ### Web
 
-- [ ] Toolbar offers Chart | Backtest | Signals tabs; switching preserves the selected coin and interval.
-- [ ] The Signals pane auto-loads plans for the selected coin/interval; each card shows direction, confidence score with the 4-component breakdown, setup kinds, entry/stop/target, R/R, age in candles, and an active/expired badge; expired cards render dimmed.
-- [ ] The settings strip exposes four weight sliders, gate inputs (min trades, min expectancy, top-N), freshness window, and scanner top-N; values persist to localStorage and a reset button restores defaults.
-- [ ] `useSignals` exposes loading/error/data state and aborts in-flight requests on coin/interval/settings change.
-- [ ] "Scan market" sweeps the top-N coins by `dayNtlVlm` at the selected interval with at most 3 requests in flight; rows fill incrementally with a `done/total` progress counter and re-sort by best-active-plan confidence; coins with no active plan are omitted from the ranking (still counted in progress); the sweep aborts on interval change or re-scan.
-- [ ] A failed coin in the sweep shows an error chip on its row and the sweep continues; coins with thin history (422) render dimmed as "insufficient data" at the bottom.
-- [ ] Clicking a scanner row selects that coin (global state) and the signals pane loads it.
-- [ ] "View on chart" switches to the Chart tab and draws entry (solid), stop (red dashed), and target (green dashed) price lines at the plan's prices; lines are replaced when another plan is viewed and cleared on coin/interval change.
-- [ ] Browser e2e (`e2e/phase3.mjs`): against live Hyperliquid, the Signals tab renders plans (or an explicit no-qualifier state), a top-5 mini-sweep populates the scanner table, and view-on-chart lines are visible in a screenshot.
+- [x] Toolbar offers Chart | Backtest | Signals tabs; switching preserves the selected coin and interval.
+- [x] The Signals pane auto-loads plans for the selected coin/interval; each card shows direction, confidence score with the 4-component breakdown, setup kinds, entry/stop/target, R/R, age in candles, and an active/expired badge; expired cards render dimmed.
+- [x] The settings strip exposes four weight sliders, gate inputs (min trades, min expectancy, top-N), freshness window, and scanner top-N; values persist to localStorage and a reset button restores defaults.
+- [x] `useSignals` exposes loading/error/data state and aborts in-flight requests on coin/interval/settings change.
+- [x] "Scan market" sweeps the top-N coins by `dayNtlVlm` at the selected interval with at most 3 requests in flight; rows fill incrementally with a `done/total` progress counter and re-sort by best-active-plan confidence; coins with no active plan are omitted from the ranking (still counted in progress); the sweep aborts on interval change or re-scan.
+- [x] A failed coin in the sweep shows an error chip on its row and the sweep continues; coins with thin history (422) render dimmed as "insufficient data" at the bottom.
+- [x] Clicking a scanner row selects that coin (global state) and the signals pane loads it.
+- [x] "View on chart" switches to the Chart tab and draws entry (solid), stop (red dashed), and target (green dashed) price lines at the plan's prices; lines are replaced when another plan is viewed and cleared on coin/interval change.
+- [x] Browser e2e (`e2e/phase3.mjs`): against live Hyperliquid, the Signals tab renders plans (or an explicit no-qualifier state), a top-5 mini-sweep populates the scanner table, and view-on-chart lines are visible in a screenshot.
 
 ## Context
 

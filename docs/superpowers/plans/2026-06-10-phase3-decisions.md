@@ -77,7 +77,7 @@ Each task carries a **Difficulty** and a **Model** for the implementing subagent
 - Modify: `packages/core/src/index.ts`
 - Test: `packages/core/test/qualify.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // packages/core/test/qualify.test.ts
@@ -112,12 +112,12 @@ describe('qualifySetups', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/core test -- qualify`
 Expected: FAIL — cannot find module `../src/decide/qualify`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // packages/core/src/decide/types.ts
@@ -215,12 +215,12 @@ export type {
 } from './decide/types';
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/core test -- qualify`
 Expected: PASS (3 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/decide packages/core/src/index.ts packages/core/test/qualify.test.ts
@@ -238,7 +238,7 @@ git commit -m "feat(core): decide types, scoring constants, setup qualification 
 - Modify: `packages/core/src/index.ts`
 - Test: `packages/core/test/confidence.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // packages/core/test/confidence.test.ts
@@ -280,12 +280,12 @@ describe('scoreConfidence', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/core test -- confidence`
 Expected: FAIL — cannot find module `../src/decide/confidence`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // packages/core/src/decide/confidence.ts
@@ -319,12 +319,12 @@ Add to `packages/core/src/index.ts`:
 export { scoreConfidence } from './decide/confidence';
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/core test -- confidence`
 Expected: PASS (4 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/core/src/decide/confidence.ts packages/core/src/index.ts packages/core/test/confidence.test.ts
@@ -342,7 +342,7 @@ git commit -m "feat(core): composite confidence scoring"
 - Modify: `packages/core/src/index.ts`
 - Test: `packages/core/test/plans.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // packages/core/test/plans.test.ts
@@ -467,12 +467,12 @@ describe('buildTradePlans', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/core test -- plans`
 Expected: FAIL — cannot find module `../src/decide/plans`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // packages/core/src/decide/plans.ts
@@ -539,17 +539,17 @@ Add to `packages/core/src/index.ts`:
 export { buildTradePlans } from './decide/plans';
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/core test -- plans`
 Expected: PASS (8 tests)
 
-- [ ] **Step 5: Run the full core suite (no regressions)**
+- [x] **Step 5: Run the full core suite (no regressions)**
 
 Run: `pnpm --filter @cta/core test`
 Expected: PASS (Phase 2's 99 + new)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add packages/core/src/decide/plans.ts packages/core/src/index.ts packages/core/test/plans.test.ts
@@ -566,7 +566,7 @@ git commit -m "feat(core): live trade-plan builder with freshness window and con
 - Modify: `apps/server/src/hyperliquid/client.ts`, `apps/server/src/cache/marketStore.ts`, `apps/server/src/services/marketsService.ts`
 - Test: `apps/server/test/client.test.ts` (extend), `apps/server/test/markets.test.ts` (extend/update fakes)
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `apps/server/test/client.test.ts` (follow the existing fake-fetch pattern in that file):
 
@@ -599,12 +599,12 @@ it('store normalizes legacy rows without dayNtlVlm to 0', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm --filter @cta/server test -- client && pnpm --filter @cta/server test -- markets`
 Expected: FAIL — `metaAndAssetCtxs` is not a function
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `apps/server/src/hyperliquid/client.ts` — add below `meta()`:
 
@@ -651,12 +651,12 @@ const markets: MarketRow[] = universe.map((u, i) => ({
 }));
 ```
 
-- [ ] **Step 4: Run the full server suite**
+- [x] **Step 4: Run the full server suite**
 
 Run: `pnpm --filter @cta/server test`
 Expected: PASS (fix any remaining fakes that only implement `meta()`)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/server/src/hyperliquid/client.ts apps/server/src/cache/marketStore.ts apps/server/src/services/marketsService.ts apps/server/test/client.test.ts apps/server/test/markets.test.ts
@@ -673,7 +673,7 @@ git commit -m "feat(server): 24h notional volume on market rows via metaAndAsset
 - Create: `apps/server/src/services/signalsService.ts`
 - Test: `apps/server/test/signalsService.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // apps/server/test/signalsService.test.ts
@@ -764,12 +764,12 @@ describe('SignalsService', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/server test -- signalsService`
 Expected: FAIL — cannot find module `../src/services/signalsService`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // apps/server/src/services/signalsService.ts
@@ -838,12 +838,12 @@ export class SignalsService {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/server test -- signalsService`
 Expected: PASS (4 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/server/src/services/signalsService.ts apps/server/test/signalsService.test.ts
@@ -861,7 +861,7 @@ git commit -m "feat(server): signals service composing cached scan, gate, and tr
 - Modify: `apps/server/src/app.ts`, `apps/server/src/server.ts`
 - Test: `apps/server/test/signalsRoute.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // apps/server/test/signalsRoute.test.ts
@@ -916,12 +916,12 @@ describe('POST /api/signals', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/server test -- signalsRoute`
 Expected: FAIL — 404 (route not registered)
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // apps/server/src/routes/signals.ts
@@ -996,12 +996,12 @@ const signalsService = new SignalsService(candleService, backtestService);
 const app = buildApp({ marketsService, analysisService, backtestService, signalsService });
 ```
 
-- [ ] **Step 4: Run the full server suite**
+- [x] **Step 4: Run the full server suite**
 
 Run: `pnpm --filter @cta/server test`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/server/src/routes/signals.ts apps/server/src/app.ts apps/server/src/server.ts apps/server/test/signalsRoute.test.ts
@@ -1018,7 +1018,7 @@ git commit -m "feat(server): POST /api/signals route with gate/weights/window co
 - Modify: `apps/web/src/api/types.ts`, `apps/web/src/api/client.ts`, `apps/web/test/toolbar.test.tsx` (fixture gains `dayNtlVlm`)
 - Test: `apps/web/test/client.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // apps/web/test/client.test.ts
@@ -1053,12 +1053,12 @@ describe('postSignals', () => {
 
 Note: this test imports `DEFAULT_SIGNALS_SETTINGS` from Task 8's module. **Implement the minimal `signalsSettings.ts` constants here if Task 8 hasn't run yet** — Task 8 then fills in load/save. (If executing in order, write the type + default object in this task and let Task 8 extend the file.)
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/web test -- client`
 Expected: FAIL — `postSignals` is not exported
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `apps/web/src/api/types.ts` — extend the core re-export list and `Market`:
 
@@ -1121,12 +1121,12 @@ export async function postSignals(
 
 `apps/web/test/toolbar.test.tsx` — `Market` now requires `dayNtlVlm`; update the MarketPicker fixture objects to include `dayNtlVlm: 0`.
 
-- [ ] **Step 4: Run tests + types**
+- [x] **Step 4: Run tests + types**
 
 Run: `pnpm --filter @cta/web test && pnpm --filter @cta/web exec tsc --noEmit`
 Expected: PASS / clean
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/api apps/web/src/state/signalsSettings.ts apps/web/test/client.test.ts apps/web/test/toolbar.test.tsx
@@ -1143,7 +1143,7 @@ git commit -m "feat(web): signals API client with typed errors and volume-aware 
 - Modify: `apps/web/src/state/signalsSettings.ts` (complete the Task 7 stub)
 - Test: `apps/web/test/signalsSettings.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // apps/web/test/signalsSettings.test.ts
@@ -1172,12 +1172,12 @@ describe('signals settings persistence', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/web test -- signalsSettings`
 Expected: FAIL — `loadSettings` is not exported
 
-- [ ] **Step 3: Implement** (append to `signalsSettings.ts`)
+- [x] **Step 3: Implement** (append to `signalsSettings.ts`)
 
 ```ts
 import { useCallback, useState } from 'react';
@@ -1211,12 +1211,12 @@ export function useSignalsSettings(): [SignalsSettings, (s: SignalsSettings) => 
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/web test -- signalsSettings`
 Expected: PASS (3 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/state/signalsSettings.ts apps/web/test/signalsSettings.test.ts
@@ -1233,7 +1233,7 @@ git commit -m "feat(web): signals settings with localStorage persistence"
 - Create: `apps/web/src/state/useSignals.ts`
 - Test: `apps/web/test/useSignals.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // apps/web/test/useSignals.test.ts
@@ -1289,12 +1289,12 @@ describe('useSignals', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/web test -- useSignals`
 Expected: FAIL — cannot find module `../src/state/useSignals`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // apps/web/src/state/useSignals.ts
@@ -1352,12 +1352,12 @@ export function useSignals(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/web test -- useSignals`
 Expected: PASS (3 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/state/useSignals.ts apps/web/test/useSignals.test.ts
@@ -1374,7 +1374,7 @@ git commit -m "feat(web): useSignals hook with debounce, abort, and enable gatin
 - Create: `apps/web/src/state/useMarketScan.ts`
 - Test: `apps/web/test/useMarketScan.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // apps/web/test/useMarketScan.test.ts
@@ -1477,12 +1477,12 @@ describe('useMarketScan', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/web test -- useMarketScan`
 Expected: FAIL — cannot find module `../src/state/useMarketScan`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // apps/web/src/state/useMarketScan.ts
@@ -1569,12 +1569,12 @@ export function useMarketScan(markets: Market[], interval: Interval, settings: S
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm --filter @cta/web test -- useMarketScan`
 Expected: PASS (4 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/state/useMarketScan.ts apps/web/test/useMarketScan.test.ts
@@ -1592,7 +1592,7 @@ git commit -m "feat(web): useMarketScan hook with bounded concurrency and abort-
 - Modify: `apps/web/src/components/Toolbar.tsx`, `apps/web/src/App.tsx`
 - Test: `apps/web/test/toolbar.test.tsx` (extend)
 
-- [ ] **Step 1: Write the failing test** (add to the `Toolbar tabs` describe block)
+- [x] **Step 1: Write the failing test** (add to the `Toolbar tabs` describe block)
 
 ```ts
 it('offers a Signals tab', () => {
@@ -1603,12 +1603,12 @@ it('offers a Signals tab', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/web test -- toolbar`
 Expected: FAIL — no button named "Signals"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `apps/web/src/components/Toolbar.tsx`:
 
@@ -1656,12 +1656,12 @@ export function SignalsPanel({ coin, interval }: SignalsPanelProps) {
 </div>
 ```
 
-- [ ] **Step 4: Run tests + types**
+- [x] **Step 4: Run tests + types**
 
 Run: `pnpm --filter @cta/web test && pnpm --filter @cta/web exec tsc --noEmit`
 Expected: PASS / clean (note: `SignalsPanel` intentionally ignores most props until Task 12; destructure only what it uses)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/components/Toolbar.tsx apps/web/src/components/SignalsPanel.tsx apps/web/src/App.tsx apps/web/test/toolbar.test.tsx
@@ -1679,7 +1679,7 @@ git commit -m "feat(web): Signals tab with state-preserving pane shell"
 - Modify: `apps/web/src/components/SignalsPanel.tsx`
 - Test: `apps/web/test/signalsPanel.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // apps/web/test/signalsPanel.test.tsx
@@ -1750,12 +1750,12 @@ describe('SignalsPanel cards', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/web test -- signalsPanel`
 Expected: FAIL — no `sig-card` elements
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```tsx
 // apps/web/src/components/SignalCard.tsx
@@ -1889,12 +1889,12 @@ export function SignalsPanel({ coin, interval, active, onViewPlan }: SignalsPane
 }
 ```
 
-- [ ] **Step 4: Run tests + types**
+- [x] **Step 4: Run tests + types**
 
 Run: `pnpm --filter @cta/web test && pnpm --filter @cta/web exec tsc --noEmit`
 Expected: PASS / clean
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/components/SignalCard.tsx apps/web/src/components/SignalsPanel.tsx apps/web/test/signalsPanel.test.tsx
@@ -1912,7 +1912,7 @@ git commit -m "feat(web): signal cards with confidence breakdown and persisted s
 - Modify: `apps/web/src/components/SignalsPanel.tsx` (replace the Task 13 placeholder)
 - Test: `apps/web/test/scannerPane.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // apps/web/test/scannerPane.test.tsx
@@ -1970,12 +1970,12 @@ describe('ScannerPane', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/web test -- scannerPane`
 Expected: FAIL — cannot find module `../src/components/ScannerPane`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```tsx
 // apps/web/src/components/ScannerPane.tsx
@@ -2063,12 +2063,12 @@ In `SignalsPanel.tsx`, replace the right-pane placeholder with:
 
 (restore `markets` and `onCoin` to the destructured props).
 
-- [ ] **Step 4: Run tests + types**
+- [x] **Step 4: Run tests + types**
 
 Run: `pnpm --filter @cta/web test && pnpm --filter @cta/web exec tsc --noEmit`
 Expected: PASS / clean
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/components/ScannerPane.tsx apps/web/src/components/SignalsPanel.tsx apps/web/test/scannerPane.test.tsx
@@ -2085,7 +2085,7 @@ git commit -m "feat(web): market scanner pane with progress, ranking, and skip r
 - Modify: `apps/web/src/components/Chart.tsx`, `apps/web/src/App.tsx`
 - Test: `apps/web/test/appPlanLines.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // apps/web/test/appPlanLines.test.tsx
@@ -2135,12 +2135,12 @@ describe('view on chart', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @cta/web test -- appPlanLines`
 Expected: FAIL — Chart mock receives `undefined` plan / no plan prop exists
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `apps/web/src/App.tsx`:
 
@@ -2182,12 +2182,12 @@ useEffect(() => {
 
 (Also add `planRefs.current = []` to the chart-teardown cleanup alongside `pivotLines.current = []`.)
 
-- [ ] **Step 4: Run tests + types**
+- [x] **Step 4: Run tests + types**
 
 Run: `pnpm --filter @cta/web test && pnpm --filter @cta/web exec tsc --noEmit`
 Expected: PASS / clean
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/App.tsx apps/web/src/components/Chart.tsx apps/web/test/appPlanLines.test.tsx
@@ -2205,7 +2205,7 @@ git commit -m "feat(web): entry/stop/target price lines on chart via view-on-cha
 
 No unit test — this IS the verification step. Prereqs: `pnpm --filter @cta/server start` (:3001) and `pnpm --filter @cta/web dev` (:5173) running; system Chrome at the default macOS path.
 
-- [ ] **Step 1: Write the script**
+- [x] **Step 1: Write the script**
 
 ```js
 // e2e/phase3.mjs — Signals tab, market sweep, and chart plan lines against live Hyperliquid.
@@ -2273,16 +2273,16 @@ await browser.close();
 console.log('E2E PASS');
 ```
 
-- [ ] **Step 2: Run it**
+- [x] **Step 2: Run it**
 
 Run (both servers up): `node e2e/phase3.mjs`
 Expected output ends with `E2E PASS`. If `sig-card` never appears, check `POST /api/signals` in the server log / network tab before touching the script — a cold scan on BTC 1h × 2000 candles takes seconds, not minutes.
 
-- [ ] **Step 3: Controller verification (NOT the subagent)**
+- [x] **Step 3: Controller verification (NOT the subagent)**
 
 The controller inspects `e2e/out/signals.png`, `e2e/out/scanner.png`, `e2e/out/chart-lines.png` at pixel level: cards show breakdown chips, scanner table has ranked rows, chart shows three horizontal lines labeled entry/stop/target. **Do not accept subagent prose about screenshot content** (Phase 2 lesson: reports embellished twice).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add e2e/phase3.mjs
@@ -2293,7 +2293,7 @@ git commit -m "test(e2e): phase 3 browser verification (signals, sweep, plan lin
 
 ## Final verification (after Task 15)
 
-- [ ] `pnpm -r test` → all green (159 from Phase 2 + ~30 new)
-- [ ] `pnpm --filter @cta/web exec tsc --noEmit` → clean
-- [ ] `node e2e/phase3.mjs` → `E2E PASS`, controller-inspected screenshots
-- [ ] Tick the spec TODOs in `docs/superpowers/specs/2026-06-10-phase3-decisions-design.md` as their acceptance criteria pass
+- [x] `pnpm -r test` → all green (159 from Phase 2 + ~30 new)
+- [x] `pnpm --filter @cta/web exec tsc --noEmit` → clean
+- [x] `node e2e/phase3.mjs` → `E2E PASS`, controller-inspected screenshots
+- [x] Tick the spec TODOs in `docs/superpowers/specs/2026-06-10-phase3-decisions-design.md` as their acceptance criteria pass
