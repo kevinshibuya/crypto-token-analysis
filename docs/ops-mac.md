@@ -156,7 +156,7 @@ Only these variables are read by the engine at boot. All have defaults and are o
 | `ENGINE_UNIVERSE_CAP` | `0` (all coins) | Maximum number of coins to track; `0` = no cap |
 | `ENGINE_WORKERS` | CPU count − 2 | Number of parallel analysis worker threads |
 | `ENGINE_TIMEFRAMES` | `15m,1h,4h,1d` | Comma-separated list of timeframes to analyse; must include `15m` |
-| `ENGINE_WEB_ORIGIN` | `http://localhost:5173` | Base URL for deep-links in alert notifications |
+| `ENGINE_WEB_ORIGIN` | `http://localhost:3001` | Base URL for deep-links in alert notifications; should point at the server origin (3001), not the vite dev server (5173) |
 | `ENGINE_MACOS_NOTIFY` | _(unset = disabled)_ | Set to `1` to enable macOS system notifications (no secret needed) |
 | `TELEGRAM_BOT_TOKEN` | _(empty = disabled)_ | Telegram bot token; both this and `TELEGRAM_CHAT_ID` must be non-empty |
 | `TELEGRAM_CHAT_ID` | _(empty = disabled)_ | Telegram chat or channel ID |
@@ -165,7 +165,25 @@ Only these variables are read by the engine at boot. All have defaults and are o
 
 ---
 
-## 7. VPS / Linux portability
+## 7. Dashboard (Phase 4B)
+
+The server serves the built web app at its own origin — no vite process on the Mac.
+
+1. Build it as part of every deploy: `pnpm --filter @cta/web build`
+2. Open `http://localhost:3001/` (or the Mac's LAN address) — scanner Live mode, alert feed,
+   and the health chip update from `GET /live` (SSE) without reloads.
+3. Set `webOrigin` in `engine.json` (or `ENGINE_WEB_ORIGIN`) to the server origin, e.g.
+   `http://localhost:3001`, so Telegram/Discord alert deep links open the served dashboard.
+   If `apps/web/dist` is missing the server logs a warning and serves the API only.
+4. The nightly MA optimizer runs at 00:10 UTC inside the engine (config block `optimizer` in
+   `engine.json`); inspect selections in the `ma_selection` table, force a run with
+   `curl -X POST 'http://localhost:3001/engine/optimize-ma?coins=BTC,ETH'` (loopback-only).
+
+> **Note:** A full-universe manual optimizer trigger can run for many minutes — when triggering manually over the full universe, use a generous client timeout (e.g. `curl --max-time 0`) or pass an explicit `coins` list.
+
+---
+
+## 8. VPS / Linux portability
 
 The engine has no macOS-only code paths — the macOS notifications sink (`MacosSink`) degrades gracefully when `osascript` is unavailable. To run on a Linux VPS:
 
