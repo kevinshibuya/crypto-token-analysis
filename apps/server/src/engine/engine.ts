@@ -21,7 +21,6 @@ import { ScanQueue, TickGate } from './scheduler';
 import { HyperliquidWs } from './ws';
 import type { WsCandleEvent } from './ws';
 import { WorkerPool } from './workerPool';
-import type { DigestAlert, PlanAlert } from './types';
 
 export interface EngineDeps {
   config: EngineConfig;
@@ -30,8 +29,11 @@ export interface EngineDeps {
   marketsService: MarketsService;
   candleStore: CandleStore;
   alertStore: AlertStore;
-  /** sink fan-out (Task 11 dispatcher.dispatch bound), injectable in tests */
-  dispatch: (text: string, alert: PlanAlert | DigestAlert) => Promise<string[]>;
+  /**
+   * sink fan-out (Task 11 dispatcher.dispatch bound); receives formatted text only —
+   * alert objects are persisted by AlertEngine, and Phase 4B consumes them from the store.
+   */
+  dispatch: (text: string) => Promise<string[]>;
   ws?: HyperliquidWs;       // injectable for tests
   pool?: WorkerPool;        // injectable for tests
   /** test seam: overrides the tick-path analyzer (default: makePlanAnalyzer(analysisConfig)) */
@@ -179,7 +181,7 @@ export class Engine {
       lastTickAgeMs: this.lastTickAt ? this.now() - this.lastTickAt : -1,
       queueDepth: this.queue.size,
       busyWorkers: this.inFlight,
-      coinsTracked: this.live.size,
+      coinsTracked: this.live.size + this.backfill.degradedCoins.length,
       coinsLive: this.live.size,
       scansCompleted: this.scansCompleted,
       latencies: this.metrics.snapshot(),

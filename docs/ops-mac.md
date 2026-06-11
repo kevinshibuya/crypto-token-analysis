@@ -108,8 +108,8 @@ curl -s localhost:3001/api/health | python3 -m json.tool
 | `engine.lastTickAgeMs` | Milliseconds since the last price tick was processed |
 | `engine.queueDepth` | Coins waiting in the scan queue |
 | `engine.busyWorkers` | Analysis workers currently occupied |
-| `engine.coinsTracked` | Total coins being monitored |
-| `engine.coinsLive` | Coins with a live provisional signal |
+| `engine.coinsTracked` | Coins under management: live (seeded + subscribed) + degraded (backfill pending retry) |
+| `engine.coinsLive` | Coins that are seeded and subscribed (live data flowing) |
 | `engine.scansCompleted` | Total analysis passes since boot |
 | `engine.latencies.p50` | Median scan latency (ms) |
 | `engine.latencies.p95` | 95th-percentile scan latency (ms) |
