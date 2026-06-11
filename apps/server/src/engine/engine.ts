@@ -1,9 +1,10 @@
 import { MIN_BACKTEST_CANDLES } from '../config';
 import { qualifySetups } from '@cta/core';
-import type { EngineAnalysisConfig } from '@cta/core';
+import type { EngineAnalysisConfig, Interval, MaSpec } from '@cta/core';
 import { DEFAULT_DETECTOR_OPTIONS, DEFAULT_BACKTEST_CONFIG } from '@cta/core';
 import type { CandleStore } from '../cache/candleStore';
 import type { AlertStore } from '../cache/alertStore';
+import type { MaSelectionStore } from '../cache/maSelectionStore';
 import type { CandleService } from '../services/candleService';
 import type { MarketsService } from '../services/marketsService';
 import type { MarketRow } from '../cache/marketStore';
@@ -14,6 +15,8 @@ import { BackfillOrchestrator } from './backfill';
 import type { CoinReadyEvent } from './backfill';
 import type { EngineConfig } from './config';
 import type { EngineLogger } from './logger';
+import { MaOptimizer } from './maOptimizer';
+import type { MaOptimizeSummary } from './maOptimizer';
 import { LatencyTracker, type HealthSnapshot } from './metrics';
 import { ProvisionalEvaluator, makePlanAnalyzer } from './provisional';
 import type { AnalyzePlansFn } from './provisional';
@@ -29,6 +32,7 @@ export interface EngineDeps {
   marketsService: MarketsService;
   candleStore: CandleStore;
   alertStore: AlertStore;
+  maSelectionStore: MaSelectionStore;
   /**
    * sink fan-out (Task 11 dispatcher.dispatch bound); receives formatted text only —
    * alert objects are persisted by AlertEngine, and Phase 4B consumes them from the store.
@@ -36,7 +40,7 @@ export interface EngineDeps {
   dispatch: (text: string) => Promise<string[]>;
   ws?: HyperliquidWs;       // injectable for tests
   pool?: WorkerPool;        // injectable for tests
-  /** test seam: overrides the tick-path analyzer (default: makePlanAnalyzer(analysisConfig)) */
+  /** test seam: overrides the tick-path analyzer (default: makePlanAnalyzer over the per-coin×timeframe config resolver) */
   provisionalAnalyze?: AnalyzePlansFn;
   now?: () => number;
 }
@@ -65,6 +69,8 @@ export class Engine {
   private alertEngine: AlertEngine;
   private provisional: ProvisionalEvaluator;
   private backfill: BackfillOrchestrator;
+  private maOverrides: Map<string, { fast: MaSpec; slow: MaSpec }>;
+  private maOptimizer: MaOptimizer;
 
   private live = new Set<string>();          // coins seeded + subscribed
   private ranks = new Map<string, number>();
@@ -101,7 +107,7 @@ export class Engine {
       tickGate: new TickGate({ minMovePct: this.cfg.tickMinMovePct, minIntervalMs: this.cfg.tickMinIntervalMs, now: this.now }),
       timeframes: this.cfg.timeframes, minCandles: MIN_BACKTEST_CANDLES,
       metrics: this.metrics, log: this.log, now: this.now,
-      analyze: deps.provisionalAnalyze ?? makePlanAnalyzer(this.analysisConfig),
+      analyze: deps.provisionalAnalyze ?? makePlanAnalyzer((coin, interval) => this.analysisConfigFor(coin, interval)),
       alert: async (coin, interval, plans) => {
         const t0 = this.now();
         await this.alertEngine.onProvisionalPlans(coin, interval, plans);
@@ -112,6 +118,30 @@ export class Engine {
     this.backfill = new BackfillOrchestrator({
       candleService: deps.candleService, marketsService: deps.marketsService, log: this.log,
       timeframes: this.cfg.timeframes, lookback: this.cfg.lookback, universeCap: this.cfg.universeCap,
+    });
+    this.maOverrides = new Map(
+      deps.maSelectionStore.all().map((r) => [`${r.coin}|${r.interval}`, { fast: r.fast, slow: r.slow }]),
+    );
+    this.maOptimizer = new MaOptimizer({
+      pool: this.pool,
+      store: deps.maSelectionStore,
+      log: this.log,
+      detector: this.analysisConfig.detector,
+      backtest: this.analysisConfig.backtest,
+      gates: {
+        minTrainTrades: this.cfg.optimizer.minTrainTrades,
+        minValidationTrades: this.cfg.optimizer.minValidationTrades,
+        validationFraction: this.cfg.optimizer.validationFraction,
+      },
+      timeframes: this.cfg.timeframes,
+      liveCoins: () => [...this.live],
+      series: (coin, interval) => this.aggregator.series(coin, interval),
+      scanBacklog: () => this.queue.size + this.inFlight,
+      onSelection: (coin, interval, sel) => {
+        const key = `${coin}|${interval}`;
+        if (sel) this.maOverrides.set(key, sel); else this.maOverrides.delete(key);
+      },
+      now: this.now,
     });
 
     this.aggregator.on('close', (e: CloseEvent) => {
@@ -150,13 +180,20 @@ export class Engine {
     this.timers.push(setInterval(() => { void this.hourlyRefresh(); }, 3_600_000));
     this.timers.push(setInterval(() => { void this.backfill.retryDegraded(); }, 5 * 60_000));
     for (const t of this.timers) t.unref?.();
+    if (this.cfg.optimizer.enabled) this.maOptimizer.start();
   }
 
   async stop(): Promise<void> {
     for (const t of this.timers) clearInterval(t);
     this.timers = [];
+    this.maOptimizer.stop();
     this.ws.stop();
     await this.pool.destroy();
+  }
+
+  /** Manual optimizer trigger (Task 7's route); works regardless of optimizer.enabled. */
+  runMaOptimization(coins?: string[]): Promise<MaOptimizeSummary> {
+    return this.maOptimizer.run(coins);
   }
 
   /** Public for tests; the hourly timer calls this with fresh market rows. */
@@ -221,6 +258,16 @@ export class Engine {
     this.prevProvisionalActive = active;
   }
 
+  /** analyzeCoin config with the stored MA selection injected, falling back to EMA50/SMA200 defaults. */
+  private analysisConfigFor(coin: string, interval: Interval): EngineAnalysisConfig {
+    const o = this.maOverrides.get(`${coin}|${interval}`);
+    if (!o) return this.analysisConfig;
+    return {
+      ...this.analysisConfig,
+      detector: { ...this.analysisConfig.detector, maFast: o.fast, maSlow: o.slow },
+    };
+  }
+
   private pumpScans(): void {
     while (this.inFlight < this.cfg.workerCount) {
       const job = this.queue.pop();
@@ -229,7 +276,7 @@ export class Engine {
       if (candles.length < MIN_BACKTEST_CANDLES) continue;
       this.inFlight++;
       const started = this.now();
-      void this.pool.run({ candles, config: this.analysisConfig })
+      void this.pool.run({ candles, config: this.analysisConfigFor(job.coin, job.interval) })
         .then(async (result) => {
           this.metrics.record('close-scan', this.now() - started);
           this.scansCompleted++;

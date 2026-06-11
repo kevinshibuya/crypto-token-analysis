@@ -30,8 +30,8 @@ const mk = (minCandles = 20) => {
     metrics: new LatencyTracker(),
     log: nullLogger(),
     alert: async (coin, interval, plans) => { alerted.push({ coin, interval, plans }); },
-    analyze: (candles) => {
-      evaluated.push({ coin: 'BTC', interval: '?', candleCount: candles.length });
+    analyze: (coin, interval, candles) => {
+      evaluated.push({ coin, interval, candleCount: candles.length });
       return [{
         setup: ['rsi-oversold-exit'], direction: 'bullish', signalT: 0, ageCandles: 0,
         entry: 1.5, stop: 1, target: 2.5, rr: 2, status: 'active',

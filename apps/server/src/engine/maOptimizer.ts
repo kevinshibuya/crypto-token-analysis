@@ -80,7 +80,9 @@ export class MaOptimizer {
   private schedule(): void {
     const delay = nextRunDelayMs(this.now());
     this.timer = setTimeout(() => {
-      void this.run().finally(() => { if (!this.stopped) this.schedule(); });
+      void this.run()
+        .catch((err) => this.deps.log.warn({ err: (err as Error).message }, 'ma-optimizer nightly run crashed'))
+        .finally(() => { if (!this.stopped) this.schedule(); });
     }, delay);
     this.timer.unref?.();
     this.deps.log.info({ delayMs: delay }, 'ma-optimizer scheduled');

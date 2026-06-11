@@ -9,11 +9,14 @@ import type { LatencyTracker } from './metrics';
 import type { TickGate } from './scheduler';
 import type { EngineLogger } from './logger';
 
-export type AnalyzePlansFn = (candles: Candle[], qualified: SetupResult[]) => TradePlan[];
+export type AnalyzePlansFn = (
+  coin: string, interval: Interval, candles: Candle[], qualified: SetupResult[],
+) => TradePlan[];
 
 /** Default tick-path analysis: detector context + detection + plans against cached qualified setups (no backtest re-run). */
-export function makePlanAnalyzer(cfg: EngineAnalysisConfig): AnalyzePlansFn {
-  return (candles, qualified) => {
+export function makePlanAnalyzer(resolve: (coin: string, interval: Interval) => EngineAnalysisConfig): AnalyzePlansFn {
+  return (coin, interval, candles, qualified) => {
+    const cfg = resolve(coin, interval);
     const ctx = buildDetectorContext(candles, cfg.detector);
     const signals = detectAll(candles, ctx);
     return buildTradePlans(candles, ctx, signals, qualified, { ...cfg.backtest, window: cfg.window, weights: cfg.weights });
@@ -61,7 +64,7 @@ export class ProvisionalEvaluator {
       if (candles.length - 1 < this.o.minCandles) continue; // closed history too thin
       const started = this.now();
       try {
-        const plans = this.o.analyze(candles, qualified);
+        const plans = this.o.analyze(coin, tf, candles, qualified);
         this.o.metrics.record('tick-eval', this.now() - started);
         await this.o.alert(coin, tf, plans);
       } catch (err) {

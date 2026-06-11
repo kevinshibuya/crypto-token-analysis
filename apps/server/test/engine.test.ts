@@ -4,6 +4,7 @@ import type { AnalyzeResult, Candle } from '@cta/core';
 import { openDb } from '../src/cache/db';
 import { CandleStore } from '../src/cache/candleStore';
 import { AlertStore } from '../src/cache/alertStore';
+import { MaSelectionStore } from '../src/cache/maSelectionStore';
 import { Engine } from '../src/engine/engine';
 import { DEFAULT_ENGINE_CONFIG } from '../src/engine/config';
 import { nullLogger } from '../src/engine/logger';
@@ -58,6 +59,7 @@ const mkEngine = async (over: { universe?: { name: string; dayNtlVlm: number }[]
     config: config as never, log: nullLogger(),
     candleService: candleService as never, marketsService: marketsService as never,
     candleStore: new CandleStore(db), alertStore: new AlertStore(db),
+    maSelectionStore: new MaSelectionStore(db),
     dispatch: async () => ['telegram'],
     ws: ws as never, pool: pool as never,
     now: () => now,

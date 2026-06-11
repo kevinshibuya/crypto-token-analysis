@@ -4,6 +4,7 @@ import type { AnalyzeResult, Candle, SetupResult, TradePlan } from '@cta/core';
 import { openDb } from '../src/cache/db';
 import { CandleStore } from '../src/cache/candleStore';
 import { AlertStore } from '../src/cache/alertStore';
+import { MaSelectionStore } from '../src/cache/maSelectionStore';
 import { Engine } from '../src/engine/engine';
 import { HyperliquidWs } from '../src/engine/ws';
 import { DEFAULT_ENGINE_CONFIG } from '../src/engine/config';
@@ -71,9 +72,10 @@ describe('engine integration over fake HL WS', () => {
       log: nullLogger(),
       candleService: candleService as never, marketsService: marketsService as never,
       candleStore: new CandleStore(db), alertStore,
+      maSelectionStore: new MaSelectionStore(db),
       dispatch: async (text) => { dispatched.push(text); return ['test-sink']; },
       ws, pool: pool as never,
-      provisionalAnalyze: (candles) => (candles[candles.length - 1].c >= 2 ? [provisionalPlan] : []),
+      provisionalAnalyze: (_coin, _interval, candles) => (candles[candles.length - 1].c >= 2 ? [provisionalPlan] : []),
     });
 
     const firstConn = fake.nextConnection(); // register before start: the backfill/scan path can win the race against the WS handshake

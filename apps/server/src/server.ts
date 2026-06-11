@@ -4,6 +4,7 @@ import { CandleStore } from './cache/candleStore';
 import { MarketStore } from './cache/marketStore';
 import { BacktestStore } from './cache/backtestStore';
 import { AlertStore } from './cache/alertStore';
+import { MaSelectionStore } from './cache/maSelectionStore';
 import { HyperliquidClient } from './hyperliquid/client';
 import { RateLimiter } from './hyperliquid/rateLimiter';
 import { CandleService } from './services/candleService';
@@ -42,10 +43,12 @@ if (process.env.ENGINE_ENABLED === '1') {
   if (engineConfig.sinks.discord) sinks.push(new DiscordSink({ webhookUrl: process.env.DISCORD_WEBHOOK_URL! }));
   if (engineConfig.sinks.macos) sinks.push(new MacosSink());
   const dispatcher = new SinkDispatcher({ sinks, log: engineLog });
+  const alertStore = new AlertStore(db);
+  const maSelectionStore = new MaSelectionStore(db);
   const engine = new Engine({
     config: engineConfig, log: engineLog,
     candleService, marketsService,
-    candleStore, alertStore: new AlertStore(db),
+    candleStore, alertStore, maSelectionStore,
     dispatch: (text) => dispatcher.dispatch(text),
   });
   const watchdog = new Watchdog({
