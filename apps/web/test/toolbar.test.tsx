@@ -56,4 +56,10 @@ describe('Toolbar tabs', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Signals' }));
     expect(onView).toHaveBeenCalledWith('signals');
   });
+  it('offers an Alerts tab', () => {
+    const onView = vi.fn();
+    render(<Toolbar {...base} view="chart" onView={onView} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Alerts' }));
+    expect(onView).toHaveBeenCalledWith('alerts');
+  });
 });

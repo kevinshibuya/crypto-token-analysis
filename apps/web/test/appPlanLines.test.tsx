@@ -41,7 +41,8 @@ describe('view on chart', () => {
     await waitFor(() =>
       expect(chartProps.at(-1)).toEqual({ entry: 100, stop: 96.8, target: 106 }));
     expect(screen.getByRole('button', { name: 'Chart' }).className).toContain('bg-blue-600');
-    // the clearing effect keys on config.coin/interval — interval change covers it
+    // planTarget is pinned to coin×interval — switching interval makes it no longer match,
+    // so the chart receives plan=null (same visible behavior as the old reset effect)
     fireEvent.click(screen.getByText('4h'));
     await waitFor(() => expect(chartProps.at(-1)).toBeNull());
   });
