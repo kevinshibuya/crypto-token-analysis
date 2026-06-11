@@ -27,6 +27,7 @@ A 24/7 engine inside the server process that ingests Hyperliquid data by WebSock
 - [ ] Latency metrics (tick→provisional, close→scan per coin, close→universe complete) are recorded and logged as p50/p95 percentiles; the live e2e asserts the budget table
 - [ ] An in-process watchdog exits the process if the WS stays dead >5 min or the event loop stalls; a documented launchd setup (plist + caffeinate) restarts it and the engine resumes warm (gap-fill + full scan cycle) with no manual steps
 - [ ] Engine activity and health transitions write structured logs to `data/logs/` with size-capped rotation
+- [ ] The server serves the built web app via `@fastify/static`, so the dashboard and alert deep links work 24/7 without a vite dev server
 - [ ] Integration test: a fake Hyperliquid WS replaying a scripted message sequence drives the full engine and produces exactly the expected alerts and SSE events, including a provisional→withdrawn case and a reconnect gap-fill
 - [ ] `node e2e/phase4.mjs` passes against live Hyperliquid: ticks flow, scans complete within budget, dashboard updates live, health chip green
 
@@ -69,9 +70,9 @@ One WebSocket connection to `wss://api.hyperliquid.xyz/ws`:
 - **`allMids`** (1 sub): mid prices for every coin ~2×/sec; updates forming candles (c, h, l) between candle messages and drives provisional checks.
 - **Local aggregation:** 1h/4h/1d candles are built from 15m candles. Hyperliquid candles are UTC-aligned so the roll-up boundaries are exact; an aggregated candle closes when its last constituent 15m candle closes.
 
-**Cold start:** for each coin×timeframe missing history, REST-backfill 2000 candles through the existing `CandleService` + rate limiter (1200 weight/min). Full-universe cold start is ~45 min; the engine starts analysing each coin as soon as its data lands, in 24h-volume order, so majors are live within the first minute. **Warm restart** gap-fills only the candles since the latest stored — seconds.
+**Cold start:** for each coin×timeframe missing history, REST-backfill 2000 candles through the existing `CandleService` + rate limiter (1200 weight/min). Per HL docs, `candleSnapshot` weighs **20 base + 1 per 60 candles returned** (~54 for a 2000-candle request); the current `CandleService` only counts the per-60 part and must be corrected as part of this phase. Full-universe cold start is therefore ~75 min; the engine starts analysing each coin as soon as its data lands, in 24h-volume order, so majors are live within the first minutes. **Warm restart** gap-fills only the candles since the latest stored — seconds.
 
-**Resilience:** heartbeat watchdog; no message for 30s → tear down, reconnect with exponential backoff (1s→60s cap), resubscribe, REST gap-fill the blackout window per coin×timeframe. All transitions logged. The market universe (coin list) refreshes from `metaAndAssetCtxs` hourly; newly listed coins join the subscriptions and backfill lazily.
+**Resilience:** heartbeat watchdog; no message for 30s → tear down, reconnect with exponential backoff (1s→60s cap), resubscribe, REST gap-fill the blackout window per coin×timeframe. All transitions logged. The market universe (coin list) refreshes from `metaAndAssetCtxs` hourly; newly listed coins join the subscriptions and backfill lazily, delisted coins unsubscribe and drop out of analysis.
 
 ### Compute kernel (the Rust escape hatch)
 
@@ -104,7 +105,7 @@ Instrumented in-process; p50/p95 logged every 5 min and exposed on `/health` and
 
 `AlertEngine` consumes analysis output and emits to sinks:
 
-- **Events:** `provisional-new` (conf ≥75), `provisional-confirmed`, `provisional-withdrawn`, `confirmed-new` (conf ≥65). Thresholds config.
+- **Events:** `provisional-new` (conf ≥75), `provisional-confirmed`, `provisional-withdrawn`, `confirmed-new` (conf ≥65). Thresholds config. Each event type fires at most once per alert identity: a plan that went provisional→confirmed does **not** additionally fire `confirmed-new`. The follow-up is `provisional-confirmed` when the closed-candle scan yields the same identity as an active plan with confidence ≥ the confirmed threshold; otherwise `provisional-withdrawn` (the message notes when the setup still existed but scored under the bar).
 - **Identity/dedupe:** identity = `(coin, timeframe, direction, sorted setup kinds, entry rounded to 0.1%)`. One fire per identity while the plan is alive; 6h cooldown after expiry. Dedupe table in SQLite so restarts don't re-fire.
 - **Burst guard:** if >10 alerts queue within any 60s window, they collapse into one digest message (count, coins, top 5 by confidence) per sink.
 - **Sinks:** Telegram bot (BotFather token + chat id), Discord webhook URL, macOS notification via `terminal-notifier` (fallback `osascript`). Per-sink delivery: 3 attempts, exponential backoff, failure logged and dropped — never blocks the engine or other sinks. Sinks configured via env; absent config disables that sink.
@@ -130,7 +131,8 @@ Nightly job at 00:10 UTC, queued at low priority into the same worker pool:
 - **Watchdog:** in-process; exits deliberately if WS is dead >5 min despite reconnects or the event loop stalls (timer-skew detector). launchd `KeepAlive` restarts it; restart is the recovery path.
 - **launchd:** documented plist (RunAtLoad + KeepAlive) running the server under `caffeinate -s`; setup instructions in `docs/ops-mac.md`, including `pmset` notes. Design stays env-portable (no macOS-only code paths in the engine itself) for a later VPS move.
 - **Logging:** structured (pino or equivalent) to `data/logs/engine.log`, size-capped rotation (e.g. 20MB × 5 files). Health transitions, scan latencies, sink failures, watchdog exits.
-- **Config:** `engine.json` at repo root (universe cap, timeframes, thresholds, throttle values, worker count, sink toggles) + secrets via env (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `DISCORD_WEBHOOK_URL`). Read at boot; restart to apply.
+- **Config:** `engine.json` at repo root (universe cap, timeframes, alert thresholds, tick-throttle values, worker count, sink toggles, and the analysis knobs the UI settings strip exposes: gate minTrades/minExpectancy/topN, window, confluenceWindow, minRR, volumeSpikeK) + secrets via env (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `DISCORD_WEBHOOK_URL`). Read at boot; restart to apply.
+- **Serving the UI 24/7:** the server serves the built web app (`apps/web/dist`) via `@fastify/static`, so the dashboard and alert deep links work without a vite dev server; deep links use the server's origin.
 
 ## Error handling
 
