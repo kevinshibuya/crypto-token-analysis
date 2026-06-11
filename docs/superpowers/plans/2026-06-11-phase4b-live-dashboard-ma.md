@@ -3137,6 +3137,8 @@ git add apps/web/src/components/ScannerPane.tsx apps/web/src/components/SignalsP
 git commit -m "feat(web): scanner Live mode with manual-scan fallback"
 ```
 
+**Task 16 deviation (recorded during execution, commit `c4cfc5b`):** the plan's new tests used `@testing-library/user-event`, which is NOT installed in apps/web (only `@testing-library/react` + `jest-dom`). Tests rewritten with `fireEvent` (+ `waitFor` for the async manual sweep), preserving all assertions; no dependency added. Task 17's tests must apply the same substitution.
+
 ---
 
 ### Task 17: web — AlertFeedPane + App integration
