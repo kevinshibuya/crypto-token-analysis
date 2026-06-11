@@ -4059,11 +4059,16 @@ git commit -m "test(e2e): phase 4a live engine verification (boot, ticks, budget
 
 ## Final verification (after all tasks)
 
-- [ ] `pnpm -r test` — full suite green (expect ~270+ tests: 205 baseline + this phase's)
-- [ ] `pnpm --filter @cta/web exec tsc --noEmit` — clean (web untouched; sanity)
-- [ ] `node e2e/phase4a.mjs` — `E2E PASS` twice
-- [ ] Tick every satisfied `- [ ]` in `docs/superpowers/specs/2026-06-11-phase4a-continuous-engine-design.md`
-- [ ] Update `HANDOFF.md` per the handoff skill
+- [x] `pnpm -r test` — full suite green: **288 tests** (core 122 / server 127 / web 39)
+- [x] `pnpm --filter @cta/web exec tsc --noEmit` — clean (web untouched; sanity)
+- [x] `node e2e/phase4a.mjs` — `E2E PASS` twice (consecutive live runs; see Task 18 deviation block for the numbers)
+- [x] Tick every satisfied `- [ ]` in `docs/superpowers/specs/2026-06-11-phase4a-continuous-engine-design.md` (19/19)
+- [x] Update `HANDOFF.md` per the handoff skill
+
+> **POST-REVIEW FIXES (final whole-branch code review `4881394..f8106e8`, verdict "ready to merge with fixes"; landed in `5c45fae`):**
+> 1. `EngineDeps.dispatch` narrowed to `(text: string) => Promise<string[]>` — the plan's wider `(text, alert)` signature promised the alert object to a binding that deliberately drops it (server.ts adapter); the narrow type now matches the real 4A contract (alert objects persist via AlertEngine; 4B reads the store).
+> 2. `status().coinsTracked` now counts `live + degraded` (was a duplicate of `coinsLive`); runbook field descriptions corrected accordingly.
+> Accepted-as-is Minors: WS `reconnectTimer` not nulled in `stop()` (guarded, harmless); `Engine.stop()` silently drops a pending digest buffer (restart-is-recovery design); e2e doesn't blank `ENGINE_MACOS_NOTIFY` (only the plist sets it).
 
 **Deviation rule:** if reality contradicts this plan (API shapes, timing, tsx/worker quirks), diagnose the root cause, fix it properly, and record the deviation inline in this plan file next to the relevant step — exactly as done in Phases 2/3.
 
