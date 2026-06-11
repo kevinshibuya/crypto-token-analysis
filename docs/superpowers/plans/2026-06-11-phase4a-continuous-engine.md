@@ -2110,6 +2110,12 @@ describe('planIdentity', () => {
 });
 ```
 
+> **DEVIATIONS (Task 10, recorded during implementation — all four verified by reviewer against `packages/core`; implementation files `types.ts`/`alertEngine.ts` are byte-identical to the plan, only the test fixtures changed):**
+> 1. **Direction literals:** `SignalDirection = 'bullish' | 'bearish'` (`packages/core/src/types.ts`) — there is no `'long'`. Test uses `direction: 'bullish'` and the planIdentity assertion is `'BTC|1h|bullish|rsi-oversold-exit|'`. ⚠ **Tasks 14 and 16 templates use the same wrong `'long'` literals and MUST be adapted the same way** (including Task 16's expected identity strings).
+> 2. **SignalKind literals:** real members are e.g. `'rsi-oversold-exit'`; plain `'rsi-oversold'` is not a `SignalKind`. Test setup arrays adapted accordingly.
+> 3. **SetupMetrics shape:** no `losses` field; real fields are `trades, wins, winRate, avgR, profitFactor, expectancy, maxDrawdownR, filtered, longTrades, shortTrades`. The fixture uses the full real shape, which also removed the plan's `as TradePlan['metrics']` cast.
+> 4. **Bucket arithmetic:** the plan's 100.00 vs 100.04 pair actually falls in DIFFERENT 0.1% buckets (4607 vs 4608) — the plan's "same bucket" claim was wrong. Test uses 99.95 vs 99.99 (both bucket 4607) as the same-bucket pair and keeps 101.5 (bucket 4622) as the different-bucket case; assertions (`a===b`, `a!==c`) unchanged.
+
 - [ ] **Step 3: Run to verify failure**
 
 Run: `pnpm --filter @cta/server test -- run test/alertEngine.test.ts`
