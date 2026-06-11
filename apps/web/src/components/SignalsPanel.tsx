@@ -1,7 +1,7 @@
 import { useSignals } from '../state/useSignals';
 import { useSignalsSettings, DEFAULT_SIGNALS_SETTINGS, type SignalsSettings } from '../state/signalsSettings';
 import { SignalCard } from './SignalCard';
-import { ScannerPane } from './ScannerPane';
+import { ScannerPane, type ScannerLiveProps } from './ScannerPane';
 import type { Interval, Market, TradePlan } from '../api/types';
 
 export interface SignalsPanelProps {
@@ -11,6 +11,7 @@ export interface SignalsPanelProps {
   active: boolean;
   onCoin: (c: string) => void;
   onViewPlan: (p: TradePlan) => void;
+  live?: ScannerLiveProps;
 }
 
 function SettingsStrip({ s, onChange }: { s: SignalsSettings; onChange: (s: SignalsSettings) => void }) {
@@ -57,7 +58,7 @@ function SettingsStrip({ s, onChange }: { s: SignalsSettings; onChange: (s: Sign
   );
 }
 
-export function SignalsPanel({ coin, interval, markets, active, onCoin, onViewPlan }: SignalsPanelProps) {
+export function SignalsPanel({ coin, interval, markets, active, onCoin, onViewPlan, live }: SignalsPanelProps) {
   const [settings, setSettings] = useSignalsSettings();
   const { data, loading, error, reload } = useSignals(coin, interval, settings, active);
 
@@ -81,7 +82,7 @@ export function SignalsPanel({ coin, interval, markets, active, onCoin, onViewPl
         ))}
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-2 overflow-auto">
-        <ScannerPane markets={markets} interval={interval} settings={settings} onCoin={onCoin} />
+        <ScannerPane markets={markets} interval={interval} settings={settings} onCoin={onCoin} live={live} />
       </div>
     </div>
   );
