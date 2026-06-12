@@ -12,8 +12,10 @@
 //      live-row set grows or refreshes — new count or a changed data-ts — with zero interaction)
 //   2. health chip is green ([data-testid="health-chip"][data-state="green"])
 //   3. a deep-link URL (?coin=&interval=) opens the right coin+timeframe
-//   4. a forced optimizer run writes auditable ma_selection rows (JSON metrics parse,
-//      train.trades >= 1, fastPeriod < slowPeriod, selectedAt > 0)
+//   4. a forced optimizer run completes with zero 'failed' decisions and ma_selection matches
+//      the decisions exactly (every challenger ⇔ one row, no strays); when ≥1 challenger exists
+//      the rows are audited (JSON metrics parse, train.trades >= 1, fastPeriod < slowPeriod,
+//      selectedAt > 0) — whether any challenger WINS is market-dependent (best-effort, like alerts)
 // Alert-feed click-through is best-effort (alerts are market-dependent): if an alert row exists
 // it is clicked and the chart must switch to the alert's coin+interval; otherwise WARN and continue.
 // NOTE on plan lines: phase3.mjs asserts window.__planLineCount === 3, but Chart.tsx only sets
@@ -262,7 +264,7 @@ if (alertRow) {
 }
 await page.screenshot({ path: resolve(OUT, 'phase4b-alerts.png') });
 
-// 8) forced optimizer run on live coins → auditable ma_selection rows
+// 8) forced optimizer run on live coins → decisions↔DB consistency + best-effort row audit
 const snap2 = await fetchSnapshot().catch((err) => fail(`SSE re-snapshot failed: ${err.message}`));
 const liveCoins = [...new Set(snap2.scans.map((s) => s.coin))];
 if (liveCoins.length < 2) fail(`need ≥2 live coins for the optimizer gate, have ${liveCoins.length}`);
@@ -295,21 +297,40 @@ const readSelections = () => {
   db.close();
   return rows;
 };
+let decisions = [...summary.decisions];
 let rows = readSelections();
 if (rows.length === 0) {
-  // ma_selection rows only exist for 'challenger' decisions; with permissive gates a challenger
-  // is very likely but not certain for any given coin — retry once with a third live coin.
+  // ma_selection rows only exist for 'challenger' decisions, and whether any grid combo beats
+  // the EMA50/SMA200 baseline out-of-sample is market-dependent — retry once with a third live
+  // coin to maximize the odds of exercising the write path.
   const c3 = liveCoins.find((c) => c !== c1 && c !== c2);
-  if (!c3) fail(`no challenger among ${c1},${c2} and no third live coin to retry with`);
-  console.warn(`WARN: no challenger among ${c1},${c2} — retrying optimizer with ${c3}`);
-  const retry = await postOptimize(c3);
-  if (!Array.isArray(retry.decisions) || retry.decisions.length !== 2) {
-    fail(`expected 2 optimizer decisions for ${c3}, got: ${JSON.stringify(retry)}`);
+  if (c3) {
+    console.warn(`WARN: no challenger among ${c1},${c2} — retrying optimizer with ${c3}`);
+    const retry = await postOptimize(c3);
+    if (!Array.isArray(retry.decisions) || retry.decisions.length !== 2) {
+      fail(`expected 2 optimizer decisions for ${c3}, got: ${JSON.stringify(retry)}`);
+    }
+    console.log(`optimizer retry decisions: ${retry.decisions.map((d) => `${d.coin}/${d.interval}=${d.decision}`).join(' ')}`);
+    decisions = decisions.concat(retry.decisions);
+    rows = readSelections();
+  } else {
+    console.warn(`WARN: no challenger among ${c1},${c2} and no third live coin to retry with`);
   }
-  console.log(`optimizer retry decisions: ${retry.decisions.map((d) => `${d.coin}/${d.interval}=${d.decision}`).join(' ')}`);
-  rows = readSelections();
-  if (rows.length === 0) fail('optimizer produced no auditable ma_selection rows after retry');
 }
+// Deterministic gate-4 assertions: the pipeline must complete and the DB must agree with the
+// decisions. Whether a challenger WINS is the market's call, so the per-row audit below is
+// best-effort (mirrors the alert click-through; see the Task 19 deviations in the plan).
+if (decisions.some((d) => d.decision === 'failed')) {
+  fail(`optimizer reported failed decisions: ${decisions.filter((d) => d.decision === 'failed').map((d) => `${d.coin}/${d.interval}`).join(', ')}`);
+}
+if (!decisions.some((d) => d.decision === 'challenger' || d.decision === 'baseline')) {
+  fail('optimizer evaluated nothing — every decision was skipped');
+}
+const challengerKeys = new Set(decisions.filter((d) => d.decision === 'challenger').map((d) => `${d.coin}/${d.interval}`));
+const rowKeys = new Set(rows.map((r) => `${r.coin}/${r.interval}`));
+if (rowKeys.size !== rows.length) fail('duplicate coin/interval rows in ma_selection');
+for (const k of challengerKeys) if (!rowKeys.has(k)) fail(`challenger decision ${k} wrote no ma_selection row`);
+for (const k of rowKeys) if (!challengerKeys.has(k)) fail(`stray ma_selection row ${k} without a challenger decision`);
 for (const r of rows) {
   let setupKinds; let train; let validation;
   try {
@@ -327,8 +348,13 @@ for (const r of rows) {
   if (!(r.fastPeriod < r.slowPeriod)) fail(`ma_selection ${r.coin}/${r.interval}: fastPeriod ${r.fastPeriod} !< slowPeriod ${r.slowPeriod}`);
   if (!(r.selectedAt > 0)) fail(`ma_selection ${r.coin}/${r.interval}: selectedAt=${r.selectedAt}`);
 }
-console.log(`PASS: ${rows.length} auditable ma_selection row(s): ${
-  rows.map((r) => `${r.coin}/${r.interval} ${r.fastType}${r.fastPeriod}<${r.slowType}${r.slowPeriod}`).join(', ')}`);
+if (rows.length > 0) {
+  console.log(`PASS: ${rows.length} auditable ma_selection row(s): ${
+    rows.map((r) => `${r.coin}/${r.interval} ${r.fastType}${r.fastPeriod}<${r.slowType}${r.slowPeriod}`).join(', ')}`);
+} else {
+  console.warn(`WARN: no challenger beat baseline across ${decisions.length} coin×interval evaluations — row audit skipped (market-dependent); decisions↔DB consistency verified`);
+}
+console.log('PASS: optimizer pipeline — zero failed decisions, ma_selection consistent with decisions');
 
 // 9) teardown
 await browser.close();
