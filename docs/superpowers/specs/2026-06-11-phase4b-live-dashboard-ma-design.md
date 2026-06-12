@@ -4,16 +4,16 @@ On top of the Phase 4A engine: a nightly walk-forward MA optimizer (per coin×ti
 
 ## TODO
 
-- [ ] Nightly at 00:10 UTC the MA optimizer grid-searches fast {SMA,EMA}×{9,12,21,34,50} × slow {SMA,EMA}×{50,100,150,200} (fast period < slow period) per coin×timeframe over MA-involved setups only, at low priority in the existing worker pool
-- [ ] An MA challenger replaces the EMA50/SMA200 baseline only when it beats the baseline's expectancy on the held-out newest 30% of candles with ≥20 train trades and ≥8 validation trades; selections are stored with their train/validation/baseline metrics in a `ma_selection` table
-- [ ] Engine scans use the stored MA selection for that coin×timeframe via the `analyzeCoin` config override, falling back to EMA50/SMA200 when none exists
-- [ ] `GET /live` (SSE) streams scanner-ranking updates (as each scan completes), alert-feed entries, and engine-health events to any number of concurrent clients, replaying a snapshot (current rankings + last 50 alerts) on connect
-- [ ] The web scanner pane has a Live mode (default when the engine SSE is connected): rows update in place without clicking Scan market; the manual button remains as fallback
-- [ ] A web alert-feed pane lists alerts chronologically with ⚠/✓/✗ badges; clicking an alert loads that coin+timeframe on the chart with the plan's entry/stop/target lines
-- [ ] A toolbar health chip reflects engine state (WS connected, last-tick age, scan-queue depth) and visibly degrades when the feed is down
-- [ ] The server serves the built web app (`apps/web/dist`) via `@fastify/static`, so the dashboard works 24/7 without a vite dev server
-- [ ] The web app parses `?coin=&interval=` URL params on load, so alert deep links (from Telegram/Discord and the feed) open the right chart
-- [ ] `node e2e/phase4b.mjs` passes against live Hyperliquid: dashboard rows update live without clicks, health chip green, a deep-link URL opens the right coin+timeframe, and a forced optimizer run on a few coins writes auditable `ma_selection` rows
+- [x] Nightly at 00:10 UTC the MA optimizer grid-searches fast {SMA,EMA}×{9,12,21,34,50} × slow {SMA,EMA}×{50,100,150,200} (fast period < slow period) per coin×timeframe over MA-involved setups only, at low priority in the existing worker pool
+- [x] An MA challenger replaces the EMA50/SMA200 baseline only when it beats the baseline's expectancy on the held-out newest 30% of candles with ≥20 train trades and ≥8 validation trades; selections are stored with their train/validation/baseline metrics in a `ma_selection` table
+- [x] Engine scans use the stored MA selection for that coin×timeframe via the `analyzeCoin` config override, falling back to EMA50/SMA200 when none exists
+- [x] `GET /live` (SSE) streams scanner-ranking updates (as each scan completes), alert-feed entries, and engine-health events to any number of concurrent clients, replaying a snapshot (current rankings + last 50 alerts) on connect
+- [x] The web scanner pane has a Live mode (default when the engine SSE is connected): rows update in place without clicking Scan market; the manual button remains as fallback
+- [x] A web alert-feed pane lists alerts chronologically with ⚠/✓/✗ badges; clicking an alert loads that coin+timeframe on the chart with the plan's entry/stop/target lines
+- [x] A toolbar health chip reflects engine state (WS connected, last-tick age, scan-queue depth) and visibly degrades when the feed is down
+- [x] The server serves the built web app (`apps/web/dist`) via `@fastify/static`, so the dashboard works 24/7 without a vite dev server
+- [x] The web app parses `?coin=&interval=` URL params on load, so alert deep links (from Telegram/Discord and the feed) open the right chart
+- [x] `node e2e/phase4b.mjs` passes against live Hyperliquid: dashboard rows update live without clicks, health chip green, a deep-link URL opens the right coin+timeframe, and a forced optimizer run on a few coins writes auditable `ma_selection` rows (amended, user-approved: rows exist only when a challenger beats baseline out-of-sample — market-dependent — so the e2e hard-asserts zero `failed` decisions and exact challenger⇔row agreement, auditing rows whenever ≥1 challenger exists; see Task 19 deviation 2 in the plan)
 
 ## Context
 
