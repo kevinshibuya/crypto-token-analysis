@@ -3484,7 +3484,7 @@ git commit -m "docs(ops): dashboard deploy flow; proxy /live in dev"
 1. Dashboard rows update live without clicks (a `[data-testid="scan-row"][data-live="1"]` appears, and the set of live rows grows or refreshes — new row count or a changed `data-ts` — without any page interaction).
 2. Health chip is green (`[data-testid="health-chip"][data-state="green"]`).
 3. A deep-link URL opens the right coin+timeframe.
-4. A forced optimizer run on a few coins writes auditable `ma_selection` rows (≥1 row whose JSON metrics parse with train/validation/baseline fields).
+4. A forced optimizer run on a few coins completes with zero `failed` decisions and `ma_selection` agrees exactly with the decisions (every challenger ⇔ one row); when ≥1 challenger exists the rows are audited (JSON metrics parse with train/validation/baseline fields) — best-effort, see Task 19 deviation 2.
 
 Alert-feed click-through is exercised best-effort (alerts are market-dependent): if an alert row exists, click it and require the 3 plan lines; otherwise print a WARN and continue.
 
@@ -3545,9 +3545,10 @@ Sequence:
 //    POST `${BASE}/engine/optimize-ma?coins=${c1},${c2}` → 200, summary.decisions.length === 4;
 //    open DB read-only via createRequire(apps/server)('better-sqlite3');
 //    rows = SELECT * FROM ma_selection;
-//    if rows.length === 0 → retry once with a third coin; still 0 → FAIL
-//    assert each row: JSON.parse(setupKinds/train/validation) succeed; train.trades >= 1;
-//    fastPeriod < slowPeriod; selectedAt > 0 → gate 4
+//    if rows.length === 0 → retry once with a third coin [see Task 19 deviation 2]
+//    hard: zero 'failed' decisions; ≥1 pair evaluated; challenger decisions ⇔ rows exactly;
+//    best-effort when rows exist: JSON.parse(setupKinds/train/validation) succeed;
+//    train.trades >= 1; fastPeriod < slowPeriod; selectedAt > 0 → gate 4
 //    console.log decisions + rows summary
 // 9. cleanup (group kill, port-free wait); console.log('E2E PASS')
 ```
@@ -3577,6 +3578,16 @@ mitigation): click the 15m pill after 'Signals' so the watch observes 15m rows (
 every 900s), and widen the growth-watch timeout to 960s so one 15m close always lands inside.
 The pill click happens BEFORE the watch starts; the watch itself remains zero-interaction, so
 the spec gate's meaning is preserved.
+
+**Task 19 deviation 2 (recorded during execution, commit `7efd794`, user-approved):** gate 4
+required a forced optimizer run to write ≥1 `ma_selection` row, but rows exist only when a grid
+challenger beats the EMA50/SMA200 baseline on held-out data — a market-dependent outcome that was
+legitimately 0-for-6 in the first live run (all decisions `baseline`; config gates 1/1 verified
+wired). Redesigned to assert deterministically what the system controls (zero `failed` decisions,
+≥1 pair evaluated, exact challenger⇔row agreement including no stray rows) and audit row contents
+whenever ≥1 challenger exists, mirroring the spec's own best-effort treatment of the
+market-dependent alert click-through. Unit/integration tests (Tasks 2/5) cover the upsert path
+deterministically.
 
 ---
 
