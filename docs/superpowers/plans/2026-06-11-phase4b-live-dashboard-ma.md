@@ -3527,10 +3527,10 @@ Sequence:
 //    JSON.parse its data → assert it has scans[], alerts[], health{} keys (10s). Abort the fetch after.
 // 5. puppeteer: goto BASE/ (networkidle2);
 //    await chip green:    page.waitForSelector('[data-testid="health-chip"][data-state="green"]', { timeout: 90_000 })
-//    open Signals view:   clickByText('Signals')
+//    open Signals view:   clickByText('Signals'); then clickByText('15m')  [see Task 19 deviation]
 //    first live row:      page.waitForSelector('[data-testid="scan-row"][data-live="1"]', { timeout: 300_000 })
 //    capture (count, ts-set) of live rows; then waitForFunction: row count increased OR any data-ts changed,
-//    WITHOUT further interaction (timeout 300_000) → gate 1
+//    WITHOUT further interaction (timeout 960_000) → gate 1
 //    screenshot e2e/out/phase4b-dashboard.png
 // 6. read a live coin symbol from the first live row's coin cell; pick interval '1h';
 //    page.goto(`${BASE}/?coin=${coin}&interval=1h`, networkidle2);
@@ -3567,6 +3567,16 @@ Expected: `E2E PASS` with all four gates logged; screenshots in `e2e/out/phase4b
 git add e2e/phase4b.mjs
 git commit -m "test(e2e): phase 4b live dashboard + MA optimizer verification"
 ```
+
+**Task 19 deviation (recorded during execution, commit `6a7c7c0`):** the plan's gate-1 watch
+ran on the default 1h interval with a 300s window. The first live run (2026-06-11) failed it:
+the scanner filters rows to the selected interval, 1h rows only re-emit on hourly closes /
+boot scans / ws gap-fill, and once all coins finished backfill before the watch began, a 300s
+window had ~8% odds of straddling an hourly close. Fix (per the Task 19 review's pre-flagged
+mitigation): click the 15m pill after 'Signals' so the watch observes 15m rows (re-emitted
+every 900s), and widen the growth-watch timeout to 960s so one 15m close always lands inside.
+The pill click happens BEFORE the watch starts; the watch itself remains zero-interaction, so
+the spec gate's meaning is preserved.
 
 ---
 
