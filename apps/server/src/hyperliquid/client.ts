@@ -49,7 +49,12 @@ export class HyperliquidClient {
           body: JSON.stringify(body),
         });
       } catch (networkErr) {
-        if (attempt >= this.maxRetries) throw networkErr;
+        if (attempt >= this.maxRetries) {
+          // statusCode 502 so Fastify answers Bad Gateway instead of a generic 500
+          throw Object.assign(new Error(`Hyperliquid unreachable: ${String(networkErr)}`), {
+            statusCode: 502, cause: networkErr,
+          });
+        }
         await this.sleep(this.baseDelayMs * 2 ** attempt++);
         continue;
       }
@@ -58,9 +63,10 @@ export class HyperliquidClient {
         await this.sleep(this.baseDelayMs * 2 ** attempt++);
         continue;
       }
-      const err = new Error(`Hyperliquid request failed: ${res.status}`) as Error & { status?: number };
-      err.status = res.status;
-      throw err;
+      // `status` = upstream HTTP status; `statusCode` 502 = what our routes answer
+      throw Object.assign(new Error(`Hyperliquid request failed: ${res.status}`), {
+        status: res.status, statusCode: 502,
+      });
     }
   }
 

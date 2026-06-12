@@ -31,6 +31,30 @@ describe('HyperliquidClient', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(3); // initial + 2 retries
   });
 
+  it('exhausted upstream failures carry statusCode 502 so routes answer Bad Gateway, not 500', async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse({}, false, 429));
+    const client = new HyperliquidClient({
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      maxRetries: 1,
+      sleep: async () => {},
+    });
+    await expect(client.candleSnapshot('BTC', '1h', 0, 10)).rejects.toMatchObject({ statusCode: 502, status: 429 });
+  });
+
+  it('exhausted network failures carry statusCode 502 and the original cause message', async () => {
+    const fetchImpl = vi.fn(async () => { throw new TypeError('fetch failed'); });
+    const client = new HyperliquidClient({
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      maxRetries: 1,
+      sleep: async () => {},
+    });
+    await expect(client.candleSnapshot('BTC', '1h', 0, 10)).rejects.toMatchObject({
+      statusCode: 502,
+      message: expect.stringContaining('fetch failed') as unknown as string,
+    });
+    expect(fetchImpl).toHaveBeenCalledTimes(2); // initial + 1 retry
+  });
+
   it('metaAndAssetCtxs parses the [meta, ctxs] tuple and numifies dayNtlVlm', async () => {
     const fetchImpl = vi.fn(async () =>
       jsonResponse([
