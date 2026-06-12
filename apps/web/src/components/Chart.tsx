@@ -73,7 +73,13 @@ export function Chart({ data, maColors, markers, plan }: {
     candle.current.setData(data.candles.map((c) => ({ time: toSec(c.t), open: c.o, high: c.h, low: c.l, close: c.c })));
     vol.current.setData(data.volume.bars.map((b) => ({ time: toSec(b.t), value: b.value, color: b.up ? '#14532d' : '#7f1d1d' })));
     volSma.current.setData(data.volume.sma.map((p) => ({ time: toSec(p.t), value: p.value })));
-    rsiLine.current.setData(data.rsi.map((p) => ({ time: toSec(p.t), value: p.value })));
+    // Panes sync by logical range (bar index), so the RSI series must share the
+    // candle timeline — pad the warm-up candles with whitespace points.
+    const rsiByTime = new Map(data.rsi.map((p) => [p.t, p.value]));
+    rsiLine.current.setData(data.candles.map((c) => {
+      const value = rsiByTime.get(c.t);
+      return value === undefined ? { time: toSec(c.t) } : { time: toSec(c.t), value };
+    }));
 
     for (const s of maRefs.current) pc.removeSeries(s);
     maRefs.current = data.movingAverages.map((ma, i) => {
