@@ -57,6 +57,7 @@ if (process.env.ENGINE_ENABLED === '1') {
   });
   const watchdog = new Watchdog({
     wsLastMessageAt: () => engine.wsLastMessageAt, wsDeadExitMs: engineConfig.wsDeadExitMs, log: engineLog,
+    supervised: process.env.ENGINE_SUPERVISED === '1',
   });
   engine.start()
     .then(() => { watchdog.start(); engineLog.info('engine started'); })
