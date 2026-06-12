@@ -6,11 +6,19 @@ Tested on macOS 14+ (Sonoma / Sequoia). All commands run from the repo root unle
 
 ## 1. Install the launchd service
 
-The plist uses a `__REPO_PATH__` placeholder so it can live in source control without secrets.
+The plist uses `__REPO_PATH__` and `__NODE_BIN__` placeholders so it can live in source control
+without secrets or machine-specific paths.
+
+> **The repo must NOT live under `~/Desktop`, `~/Documents`, or `~/Downloads`** — those folders
+> are TCC-protected and launchd background jobs are silently denied access to them
+> (`Operation not permitted`). Terminal's Full Disk Access does not apply: launchd agents are
+> spawned by launchd, outside Terminal's process tree.
 
 ```bash
-# Expand the placeholder with the absolute path to this repo, then install
-sed "s|__REPO_PATH__|$(pwd)|g" ops/com.cta.engine.plist \
+# Expand the placeholders (repo path + the dir containing node/pnpm), then install
+sed -e "s|__REPO_PATH__|$(pwd)|g" \
+    -e "s|__NODE_BIN__|$(dirname "$(which pnpm)")|g" \
+    ops/com.cta.engine.plist \
   > ~/Library/LaunchAgents/com.cta.engine.plist
 ```
 
@@ -80,10 +88,12 @@ And in **System Settings → Battery → Power Adapter**, enable "Prevent automa
 
 ## 4. Crash recovery semantics
 
-`KeepAlive = true` in the plist means launchd restarts the process on any exit. The watchdog deliberately exits to trigger this recovery:
+`KeepAlive = true` in the plist means launchd restarts the process on any exit. The watchdog deliberately exits to trigger this recovery — **but only when `ENGINE_SUPERVISED=1`** (the plist sets it; manual terminal runs leave it unset):
 
 - **Exit 1** — WebSocket dead beyond `wsDeadExitMs` (default 5 minutes), measured from the later of the last received WS message **or** the watchdog's own start time. The start-time baseline prevents spurious exits at cold boot before the first message arrives.
-- **Exit 2** — Event-loop stall detected via timer-skew signature.
+- **Exit 2** — Event-loop stall detected via timer-skew signature. Note this signature is also produced by OS-level process freezes (system sleep, App Nap, swap-thrash on a memory-pressured machine) — under launchd the restart absorbs them either way.
+
+When unsupervised (manual `pnpm --filter @cta/server start` in a terminal), the watchdog logs the same conditions as fatals but keeps the process alive: the WS layer self-reconnects on its own, and exiting without a supervisor would just leave the server dead.
 
 On restart the engine gap-fills its state from SQLite within seconds — no full historical backfill needed.
 

@@ -15,6 +15,10 @@
   <key>EnvironmentVariables</key>
   <dict>
     <key>ENGINE_ENABLED</key><string>1</string>
+    <!-- launchd KeepAlive restarts us — let the watchdog exit deliberately -->
+    <key>ENGINE_SUPERVISED</key><string>1</string>
+    <!-- launchd's default PATH has no node/pnpm — __NODE_BIN__ is expanded at install -->
+    <key>PATH</key><string>__NODE_BIN__:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
     <!-- secrets: fill in or leave empty to disable a sink -->
     <key>TELEGRAM_BOT_TOKEN</key><string></string>
     <key>TELEGRAM_CHAT_ID</key><string></string>
