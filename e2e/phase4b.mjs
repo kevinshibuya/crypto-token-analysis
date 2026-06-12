@@ -187,6 +187,11 @@ await page.waitForSelector('[data-testid="health-chip"][data-state="green"]', { 
 console.log('PASS: health chip green');
 
 await clickByText('Signals');
+// Watch on the 15m interval: the scanner filters rows to the selected interval (default 1h),
+// and 1h rows only re-emit on hourly closes / boot scans — a 300s watch starves once backfill
+// completes (observed in the 2026-06-11 run). 15m rows refresh on every 15m close, and a 960s
+// window always straddles at least one 900s-spaced close.
+await clickByText('15m');
 await page.waitForSelector('[data-testid="scan-row"][data-live="1"]', { timeout: 300_000 })
   .catch(() => fail('no live scan row appeared'));
 const liveState = await page.evaluate(() => {
@@ -201,7 +206,7 @@ await page.waitForFunction((prevCount, prevKeys) => {
   const rows = [...document.querySelectorAll('[data-testid="scan-row"][data-live="1"]')];
   const keys = rows.map((r) => `${r.querySelectorAll('td')[1]?.textContent?.trim()}|${r.getAttribute('data-ts')}`);
   return rows.length > prevCount || keys.some((k) => !prevKeys.includes(k));
-}, { timeout: 300_000, polling: 1_000 }, liveState.count, liveState.keys)
+}, { timeout: 960_000, polling: 1_000 }, liveState.count, liveState.keys)
   .catch(() => fail('live rows never grew or refreshed without interaction'));
 const liveAfter = await page.$$eval('[data-testid="scan-row"][data-live="1"]', (rows) => rows.length);
 console.log(`PASS: live rows updated hands-off (${liveState.count} → ${liveAfter})`);
