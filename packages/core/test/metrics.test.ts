@@ -29,4 +29,10 @@ describe('computeMetrics', () => {
     expect(m.profitFactor).toBe(0);
     expect(m.maxDrawdownR).toBe(0);
   });
+  it('expectancy equals avgR even when break-even (r=0) trades are present', () => {
+    // r = [2, -1, 0]: avgR = 1/3; the old decomposition mis-computed this as 0
+    const m = computeMetrics([tr(2), tr(-1, 'bearish'), tr(0)], 0);
+    expect(m.avgR).toBeCloseTo(1 / 3, 10);
+    expect(m.expectancy).toBeCloseTo(m.avgR, 10);
+  });
 });
