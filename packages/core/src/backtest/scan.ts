@@ -59,8 +59,10 @@ export function runSetup(
   return setupFromSignals(candles, detectAll(candles, ctx), ctx, cfg, kinds);
 }
 
-export function runScan(candles: Candle[], ctx: DetectorContext, cfg: BacktestConfig = DEFAULT_BACKTEST_CONFIG): ScanResult {
-  const signals = detectAll(candles, ctx);
+export function runScan(
+  candles: Candle[], ctx: DetectorContext, cfg: BacktestConfig = DEFAULT_BACKTEST_CONFIG,
+  signals: Signal[] = detectAll(candles, ctx),
+): ScanResult {
   const present = SIGNAL_KINDS.filter((k) => signals.some((s) => s.kind === k));
   const results: SetupResult[] = [];
   for (const k of present) results.push(setupFromSignals(candles, signals, ctx, cfg, [k]));

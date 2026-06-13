@@ -40,9 +40,9 @@ export function defaultEngineAnalysisConfig(): EngineAnalysisConfig {
 
 export function analyzeCoin(candles: Candle[], cfg: EngineAnalysisConfig): AnalyzeResult {
   const ctx = buildDetectorContext(candles, cfg.detector);
-  const scan = runScan(candles, ctx, cfg.backtest);
-  const qualified = qualifySetups(scan.results, cfg.gate);
   const signals = detectAll(candles, ctx);
+  const scan = runScan(candles, ctx, cfg.backtest, signals);
+  const qualified = qualifySetups(scan.results, cfg.gate);
   const plans = buildTradePlans(candles, ctx, signals, qualified, {
     ...cfg.backtest, window: cfg.window, weights: cfg.weights,
   });

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { pairEntries, runScan, runSetup, DEFAULT_BACKTEST_CONFIG } from '../src/backtest/scan';
 import { buildDetectorContext, DEFAULT_DETECTOR_OPTIONS } from '../src/detectorContext';
+import { detectAll } from '../src/detectors';
 import { candle } from './fixtures';
 import type { Signal } from '../src/types';
 
@@ -88,5 +89,11 @@ describe('runScan', () => {
     for (const r of scan.results.filter((x) => x.kinds.length === 2)) {
       expect(r.metrics.trades + r.metrics.filtered).toBeGreaterThan(0);
     }
+  });
+
+  it('accepts precomputed signals and returns identical results', () => {
+    const internal = runScan(candles, ctx, DEFAULT_BACKTEST_CONFIG);
+    const provided = runScan(candles, ctx, DEFAULT_BACKTEST_CONFIG, detectAll(candles, ctx));
+    expect(JSON.stringify(provided)).toBe(JSON.stringify(internal));
   });
 });
