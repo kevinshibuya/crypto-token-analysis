@@ -96,18 +96,42 @@ function makePivotPricesAt(candles: Candle[], pivotOpts: PivotOptions): (i: numb
   };
 }
 
-export function buildDetectorContext(
-  candles: Candle[],
-  opts: DetectorOptions = DEFAULT_DETECTOR_OPTIONS,
-): DetectorContext {
+/** The MA-invariant slice of a DetectorContext — reusable across MA-grid combos. */
+export interface BaseDetectorContext {
+  rsi: number[];
+  volumeSma: number[];
+  atr: number[];
+  pivots: PivotLevel[];
+  pivotPricesAt: (i: number) => number[];
+}
+
+export function buildBaseDetectorContext(candles: Candle[], opts: DetectorOptions): BaseDetectorContext {
   return {
     rsi: alignToCandles(candles, rsi(candles, opts.rsiPeriod)),
-    maFast: alignToCandles(candles, maPoints(candles, opts.maFast)),
-    maSlow: alignToCandles(candles, maPoints(candles, opts.maSlow)),
     volumeSma: alignToCandles(candles, volume(candles, opts.volumeSmaPeriod).sma),
     atr: alignToCandles(candles, atr(candles, opts.atrPeriod)),
     pivots: pivots(candles, opts.pivots),
     pivotPricesAt: makePivotPricesAt(candles, opts.pivots),
+  };
+}
+
+/** Layer the MA arrays for `opts` onto a shared base, producing a full DetectorContext. */
+export function withMa(base: BaseDetectorContext, candles: Candle[], opts: DetectorOptions): DetectorContext {
+  return {
+    rsi: base.rsi,
+    maFast: alignToCandles(candles, maPoints(candles, opts.maFast)),
+    maSlow: alignToCandles(candles, maPoints(candles, opts.maSlow)),
+    volumeSma: base.volumeSma,
+    atr: base.atr,
+    pivots: base.pivots,
+    pivotPricesAt: base.pivotPricesAt,
     opts,
   };
+}
+
+export function buildDetectorContext(
+  candles: Candle[],
+  opts: DetectorOptions = DEFAULT_DETECTOR_OPTIONS,
+): DetectorContext {
+  return withMa(buildBaseDetectorContext(candles, opts), candles, opts);
 }

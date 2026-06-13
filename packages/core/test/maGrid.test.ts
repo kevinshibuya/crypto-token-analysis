@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildMaGrid, decideChallenger, optimizeMaForSeries, DEFAULT_MA_GRID_GATES,
+  buildMaGrid, decideChallenger, optimizeMaForSeries, evaluateMaSetups, DEFAULT_MA_GRID_GATES,
 } from '../src/index';
 import type { Candle, SplitEvaluation } from '../src/index';
 import { signalFamily } from '../src/detectors';
@@ -113,6 +113,17 @@ describe('optimizeMaForSeries', () => {
     const r = optimizeMaForSeries(flat, input);
     expect(r.decision).toBe('baseline');
     expect(r.selection).toBeNull();
+  });
+
+  it('baseline from the shared-base optimizer matches an independent evaluateMaSetups', () => {
+    const candles = syntheticCandles(1200);
+    const gates = DEFAULT_MA_GRID_GATES;
+    const splitIndex = Math.floor(candles.length * (1 - gates.validationFraction));
+    const baseCombo = { fast: input.detector.maFast, slow: input.detector.maSlow };
+    const direct = evaluateMaSetups(
+      candles, input.detector, input.backtest, baseCombo, splitIndex, gates.minTrainTrades,
+    );
+    expect(optimizeMaForSeries(candles, input).baseline).toEqual(direct);
   });
 
   it('honors a custom validationFraction', () => {
