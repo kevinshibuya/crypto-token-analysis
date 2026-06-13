@@ -5,7 +5,7 @@ export function rsi(candles: Candle[], period: number): IndicatorPoint[] {
   if (candles.length <= period) return [];
 
   const fromAverages = (avgGain: number, avgLoss: number): number =>
-    avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+    avgLoss === 0 ? (avgGain === 0 ? 50 : 100) : 100 - 100 / (1 + avgGain / avgLoss);
 
   let gain = 0;
   let loss = 0;

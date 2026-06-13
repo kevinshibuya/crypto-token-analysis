@@ -25,4 +25,11 @@ describe('rsi', () => {
   it('returns empty when candles <= period', () => {
     expect(rsi([c(1, 1), c(2, 2)], 2)).toEqual([]);
   });
+
+  it('returns 50 (neutral) for a fully flat window — zero gains and zero losses', () => {
+    const candles = Array.from({ length: 20 }, (_, i) => c(i + 1, 100));
+    const out = rsi(candles, 14);
+    expect(out.length).toBeGreaterThan(0);
+    for (const p of out) expect(p.value).toBe(50);
+  });
 });
