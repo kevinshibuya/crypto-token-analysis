@@ -7,15 +7,21 @@ export interface PivotOptions {
   volumeWindow?: number; // bars each side summed for strength (default = lookback)
 }
 
-export function pivots(candles: Candle[], opts: PivotOptions): PivotLevel[] {
-  const { lookback, maxLevels, mergeTolerance } = opts;
+/** A raw, unmerged pivot. `confirmIdx = index + lookback` is the earliest candle at which the
+ *  pivot is knowable walk-forward (lookback bars must exist after it). */
+export interface RawPivot {
+  price: number;
+  strength: number;
+  index: number;
+  confirmIdx: number;
+}
+
+/** Single full-history swing-scan. Output is in candle-index order, hence also confirmIdx order. */
+export function collectRawPivots(candles: Candle[], opts: PivotOptions): RawPivot[] {
+  const { lookback } = opts;
   if (lookback <= 0) throw new Error('pivots: lookback must be > 0');
   const vWin = opts.volumeWindow ?? lookback;
-  const current = candles.length ? candles[candles.length - 1].c : 0;
-
-  interface Raw { price: number; strength: number; index: number }
-  const raw: Raw[] = [];
-
+  const raw: RawPivot[] = [];
   for (let i = lookback; i < candles.length - lookback; i++) {
     let isHigh = true;
     let isLow = true;
@@ -29,13 +35,19 @@ export function pivots(candles: Candle[], opts: PivotOptions): PivotLevel[] {
     for (let j = Math.max(0, i - vWin); j <= Math.min(candles.length - 1, i + vWin); j++) {
       strength += candles[j].v;
     }
-    if (isHigh) raw.push({ price: candles[i].h, strength, index: i });
-    if (isLow) raw.push({ price: candles[i].l, strength, index: i });
+    const confirmIdx = i + lookback;
+    if (isHigh) raw.push({ price: candles[i].h, strength, index: i, confirmIdx });
+    if (isLow) raw.push({ price: candles[i].l, strength, index: i, confirmIdx });
   }
+  return raw;
+}
 
-  raw.sort((a, b) => a.price - b.price);
+/** Greedy price-merge (strength-weighted) → rank by strength → top maxLevels. Does not mutate `raw`. */
+export function mergeRankSlice(raw: RawPivot[], opts: PivotOptions, current: number): PivotLevel[] {
+  const { lookback, maxLevels, mergeTolerance } = opts;
+  const sorted = [...raw].sort((a, b) => a.price - b.price);
   const merged: { price: number; strength: number; indices: number[] }[] = [];
-  for (const r of raw) {
+  for (const r of sorted) {
     const last = merged[merged.length - 1];
     if (last && Math.abs(r.price - last.price) / last.price <= mergeTolerance) {
       const total = last.strength + r.strength;
@@ -49,10 +61,10 @@ export function pivots(candles: Candle[], opts: PivotOptions): PivotLevel[] {
 
   const visitGap = 2 * lookback;
   const countVisits = (indices: number[]): number => {
-    const sorted = [...indices].sort((a, b) => a - b);
+    const s = [...indices].sort((a, b) => a - b);
     let visits = 1;
-    for (let i = 1; i < sorted.length; i++) {
-      if (sorted[i] - sorted[i - 1] > visitGap) visits++;
+    for (let i = 1; i < s.length; i++) {
+      if (s[i] - s[i - 1] > visitGap) visits++;
     }
     return visits;
   };
@@ -65,4 +77,9 @@ export function pivots(candles: Candle[], opts: PivotOptions): PivotLevel[] {
   }));
   levels.sort((a, b) => b.strength - a.strength);
   return levels.slice(0, maxLevels);
+}
+
+export function pivots(candles: Candle[], opts: PivotOptions): PivotLevel[] {
+  const current = candles.length ? candles[candles.length - 1].c : 0;
+  return mergeRankSlice(collectRawPivots(candles, opts), opts, current);
 }
