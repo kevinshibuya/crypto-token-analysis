@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts",
+    "start": "ENGINE_ENABLED=${ENGINE_ENABLED:-1} tsx src/server.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
