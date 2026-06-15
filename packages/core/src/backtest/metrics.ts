@@ -22,8 +22,6 @@ export function computeMetrics(trades: TradeRecord[], filtered: number): SetupMe
   const grossLoss = -losses.reduce((a, b) => a + b, 0);
   const avgR = n ? rs.reduce((a, b) => a + b, 0) / n : 0;
   const winRate = n ? wins.length / n : 0;
-  const avgWin = wins.length ? grossWin / wins.length : 0;
-  const avgLoss = losses.length ? grossLoss / losses.length : 0;
 
   let equity = 0;
   let peak = 0;
@@ -40,7 +38,7 @@ export function computeMetrics(trades: TradeRecord[], filtered: number): SetupMe
     winRate,
     avgR,
     profitFactor: grossLoss > 0 ? grossWin / grossLoss : (grossWin > 0 ? null : 0),
-    expectancy: winRate * avgWin - (1 - winRate) * avgLoss,
+    expectancy: avgR,
     maxDrawdownR: maxDd,
     filtered,
     longTrades: trades.filter((t) => t.direction === 'bullish').length,

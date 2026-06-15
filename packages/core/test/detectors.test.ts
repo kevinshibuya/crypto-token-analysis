@@ -53,3 +53,28 @@ describe('detectAll', () => {
     for (let i = 1; i < all.length; i++) expect(all[i].index).toBeGreaterThanOrEqual(all[i - 1].index);
   });
 });
+
+describe('detectAll dedupe', () => {
+  it('output equals the per-kind registry dispatch (behavior-preserving)', () => {
+    const level: PivotLevel = { price: 100, type: 'support', strength: 1, touches: 1 };
+    const candles = [
+      candle(1, 102, 103, 101.5, 102, 1),
+      candle(2, 102, 102.5, 100.2, 101, 1),
+      candle(3, 101.5, 102, 100.9, 101, 9),
+      candle(4, 101, 101.2, 100.2, 100.3, 1),
+      candle(5, 100.2, 101.6, 100.1, 101.5, 1),
+    ];
+    const ctx = ctxWith({
+      rsi: [NaN, 25, 35, 40, 45],
+      maFast: [99, 99.5, 100.5, 100.4, 100.6],
+      maSlow: [100, 100, 100, 100, 100],
+      volumeSma: [4, 4, 4, 4, 4],
+      atr: [2, 2, 2, 2, 2],
+      pivots: [level],
+    });
+    const viaRegistry = SIGNAL_KINDS
+      .flatMap((kind) => DETECTOR_REGISTRY[kind](candles, ctx))
+      .sort((a, b) => a.index - b.index || a.kind.localeCompare(b.kind));
+    expect(detectAll(candles, ctx)).toEqual(viaRegistry);
+  });
+});

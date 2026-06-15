@@ -51,9 +51,21 @@ export function signalFamily(kind: SignalKind): SignalFamily {
   return 'pattern';
 }
 
+// DETECTOR_REGISTRY is the source of truth for the kind->detector mapping; this is its
+// unique base-function set (each SignalKind is emitted by exactly one). Keep in sync: the
+// 'detectAll dedupe' test in test/detectors.test.ts fails if a drifted detector fires here.
+const BASE_DETECTORS: Detector[] = [
+  detectDoji, detectHammer, detectShootingStar,
+  detectEngulfing, detectHarami,
+  detectStars, detectSoldiersCrows,
+  detectRsiZoneExits, detectRsiDivergence,
+  detectMaCross, detectPriceMaCross,
+  detectVolumeSpike, detectSrSignals,
+];
+
 export function detectAll(candles: Candle[], ctx: DetectorContext): Signal[] {
   const out: Signal[] = [];
-  for (const kind of SIGNAL_KINDS) out.push(...DETECTOR_REGISTRY[kind](candles, ctx));
+  for (const detect of BASE_DETECTORS) out.push(...detect(candles, ctx));
   out.sort((a, b) => a.index - b.index || a.kind.localeCompare(b.kind));
   return out;
 }

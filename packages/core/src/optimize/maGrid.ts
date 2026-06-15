@@ -1,6 +1,6 @@
 import type { Candle, MaType, Signal, SignalKind } from '../types';
-import type { DetectorOptions, MaSpec } from '../detectorContext';
-import { buildDetectorContext } from '../detectorContext';
+import type { DetectorOptions, MaSpec, DetectorContext } from '../detectorContext';
+import { buildDetectorContext, buildBaseDetectorContext, withMa } from '../detectorContext';
 import { detectAll, SIGNAL_KINDS, signalFamily } from '../detectors';
 import { simulate } from '../backtest/simulate';
 import { computeMetrics, type SetupMetrics } from '../backtest/metrics';
@@ -80,12 +80,10 @@ const better = (a: SplitEvaluation, b: SplitEvaluation): boolean =>
  * by signal index; simulation runs on the full array (boundary trades may exit in the holdout —
  * accepted, see plan conventions).
  */
-export function evaluateMaSetups(
-  candles: Candle[], detector: DetectorOptions, backtest: BacktestConfig,
-  combo: MaCombo, splitIndex: number, minTrainTrades: number,
+function evaluateMaSetupsWithCtx(
+  candles: Candle[], ctx: DetectorContext, backtest: BacktestConfig,
+  splitIndex: number, minTrainTrades: number,
 ): SplitEvaluation | null {
-  const opts: DetectorOptions = { ...detector, maFast: combo.fast, maSlow: combo.slow };
-  const ctx = buildDetectorContext(candles, opts);
   const signals = detectAll(candles, ctx);
   const present = SIGNAL_KINDS.filter((k) => signals.some((s) => s.kind === k));
   const isMa = (k: SignalKind): boolean => signalFamily(k) === 'ma';
@@ -120,18 +118,34 @@ export function evaluateMaSetups(
   return best;
 }
 
+export function evaluateMaSetups(
+  candles: Candle[], detector: DetectorOptions, backtest: BacktestConfig,
+  combo: MaCombo, splitIndex: number, minTrainTrades: number,
+): SplitEvaluation | null {
+  const opts: DetectorOptions = { ...detector, maFast: combo.fast, maSlow: combo.slow };
+  const ctx = buildDetectorContext(candles, opts);
+  return evaluateMaSetupsWithCtx(candles, ctx, backtest, splitIndex, minTrainTrades);
+}
+
 export function optimizeMaForSeries(candles: Candle[], input: MaGridInput): MaOptimizationResult {
   const gates = input.gates ?? DEFAULT_MA_GRID_GATES;
   const splitIndex = Math.floor(candles.length * (1 - gates.validationFraction));
   const baseCombo: MaCombo = { fast: input.detector.maFast, slow: input.detector.maSlow };
-  const baseline = evaluateMaSetups(candles, input.detector, input.backtest, baseCombo, splitIndex, gates.minTrainTrades);
+
+  const base = buildBaseDetectorContext(candles, input.detector);
+  const ctxFor = (combo: MaCombo): DetectorContext =>
+    withMa(base, candles, { ...input.detector, maFast: combo.fast, maSlow: combo.slow });
+
+  const baseline = evaluateMaSetupsWithCtx(
+    candles, ctxFor(baseCombo), input.backtest, splitIndex, gates.minTrainTrades,
+  );
 
   let best: (SplitEvaluation & { combo: MaCombo }) | null = null;
   let bestQualified = false;
   for (const combo of buildMaGrid()) {
     if (combo.fast.type === baseCombo.fast.type && combo.fast.period === baseCombo.fast.period
       && combo.slow.type === baseCombo.slow.type && combo.slow.period === baseCombo.slow.period) continue;
-    const ev = evaluateMaSetups(candles, input.detector, input.backtest, combo, splitIndex, gates.minTrainTrades);
+    const ev = evaluateMaSetupsWithCtx(candles, ctxFor(combo), input.backtest, splitIndex, gates.minTrainTrades);
     if (!ev) continue;
     const qualified = ev.train.trades >= gates.minTrainTrades;
     if (!best || (qualified && !bestQualified) || (qualified === bestQualified && better(ev, best))) {

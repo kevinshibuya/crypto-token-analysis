@@ -4,7 +4,7 @@ import { ema } from './ema';
 import { rsi } from './rsi';
 import { volume } from './volume';
 import { atr } from './atr';
-import { pivots, type PivotOptions } from './pivots';
+import { pivots, collectRawPivots, mergeRankSlice, type PivotOptions } from './pivots';
 
 export interface MaSpec { type: MaType; period: number }
 
@@ -52,27 +52,86 @@ export function alignToCandles(candles: Candle[], points: IndicatorPoint[]): num
 const maPoints = (candles: Candle[], spec: MaSpec): IndicatorPoint[] =>
   spec.type === 'SMA' ? sma(candles, spec.period) : ema(candles, spec.period);
 
+/** Walk-forward pivot prices at candle i. Fast path (vWin <= lookback): collect raw pivots once,
+ *  then merge only the prefix confirmed by i, memoized by confirmed-pivot count. Fallback
+ *  (vWin > lookback): legacy per-slice recomputation, memoized per index. */
+function makePivotPricesAt(candles: Candle[], pivotOpts: PivotOptions): (i: number) => number[] {
+  const lookback = pivotOpts.lookback;
+  const vWin = pivotOpts.volumeWindow ?? lookback;
+  const clamp = (i: number): number => Math.max(0, Math.min(i, candles.length - 1));
+
+  if (vWin > lookback) {
+    const memo = new Map<number, number[]>();
+    return (i: number): number[] => {
+      const key = clamp(i);
+      const hit = memo.get(key);
+      if (hit) return hit;
+      const prices = pivots(candles.slice(0, key + 1), pivotOpts).map((p) => p.price);
+      memo.set(key, prices);
+      return prices;
+    };
+  }
+
+  const raw = collectRawPivots(candles, pivotOpts); // confirmIdx-ascending
+  const byCount = new Map<number, number[]>();
+  const confirmedCount = (i: number): number => {
+    let lo = 0;
+    let hi = raw.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (raw[mid].confirmIdx <= i) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  };
+  return (i: number): number[] => {
+    const key = clamp(i);
+    const k = confirmedCount(key);
+    const hit = byCount.get(k);
+    if (hit) return hit;
+    const current = candles.length ? candles[key].c : 0;
+    const prices = mergeRankSlice(raw.slice(0, k), pivotOpts, current).map((p) => p.price);
+    byCount.set(k, prices);
+    return prices;
+  };
+}
+
+/** The MA-invariant slice of a DetectorContext — reusable across MA-grid combos. */
+export interface BaseDetectorContext {
+  rsi: number[];
+  volumeSma: number[];
+  atr: number[];
+  pivots: PivotLevel[];
+  pivotPricesAt: (i: number) => number[];
+}
+
+export function buildBaseDetectorContext(candles: Candle[], opts: DetectorOptions): BaseDetectorContext {
+  return {
+    rsi: alignToCandles(candles, rsi(candles, opts.rsiPeriod)),
+    volumeSma: alignToCandles(candles, volume(candles, opts.volumeSmaPeriod).sma),
+    atr: alignToCandles(candles, atr(candles, opts.atrPeriod)),
+    pivots: pivots(candles, opts.pivots),
+    pivotPricesAt: makePivotPricesAt(candles, opts.pivots),
+  };
+}
+
+/** Layer the MA arrays for `opts` onto a shared base, producing a full DetectorContext. */
+export function withMa(base: BaseDetectorContext, candles: Candle[], opts: DetectorOptions): DetectorContext {
+  return {
+    rsi: base.rsi,
+    maFast: alignToCandles(candles, maPoints(candles, opts.maFast)),
+    maSlow: alignToCandles(candles, maPoints(candles, opts.maSlow)),
+    volumeSma: base.volumeSma,
+    atr: base.atr,
+    pivots: base.pivots,
+    pivotPricesAt: base.pivotPricesAt,
+    opts,
+  };
+}
+
 export function buildDetectorContext(
   candles: Candle[],
   opts: DetectorOptions = DEFAULT_DETECTOR_OPTIONS,
 ): DetectorContext {
-  const memo = new Map<number, number[]>();
-  const pivotPricesAt = (i: number): number[] => {
-    const key = Math.max(0, Math.min(i, candles.length - 1));
-    const hit = memo.get(key);
-    if (hit) return hit;
-    const prices = pivots(candles.slice(0, key + 1), opts.pivots).map((p) => p.price);
-    memo.set(key, prices);
-    return prices;
-  };
-  return {
-    rsi: alignToCandles(candles, rsi(candles, opts.rsiPeriod)),
-    maFast: alignToCandles(candles, maPoints(candles, opts.maFast)),
-    maSlow: alignToCandles(candles, maPoints(candles, opts.maSlow)),
-    volumeSma: alignToCandles(candles, volume(candles, opts.volumeSmaPeriod).sma),
-    atr: alignToCandles(candles, atr(candles, opts.atrPeriod)),
-    pivots: pivots(candles, opts.pivots),
-    pivotPricesAt,
-    opts,
-  };
+  return withMa(buildBaseDetectorContext(candles, opts), candles, opts);
 }
