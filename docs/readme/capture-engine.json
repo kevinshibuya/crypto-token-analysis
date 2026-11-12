@@ -1,0 +1,9 @@
+{
+  "universeCap": 20,
+  "timeframes": ["15m", "1h"],
+  "confirmedMinConfidence": 40,
+  "provisionalMinConfidence": 60,
+  "sinks": { "telegram": false, "discord": false, "macos": false },
+  "webOrigin": "http://localhost:3001",
+  "analysis": { "gate": { "minTrades": 10, "minExpectancy": 0, "topN": 50 }, "window": 10 }
+}
